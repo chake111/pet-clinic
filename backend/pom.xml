@@ -102,6 +102,12 @@
             <artifactId>spring-boot-starter-test</artifactId>
             <scope>test</scope>
         </dependency>
+        <!-- 集成测试用真实 MySQL：版本由 Boot BOM 管理，容器在测试代码里手工 start() -->
+        <dependency>
+            <groupId>org.testcontainers</groupId>
+            <artifactId>mysql</artifactId>
+            <scope>test</scope>
+        </dependency>
 
     </dependencies>
 
@@ -119,6 +125,19 @@
                         </exclude>
                     </excludes>
                 </configuration>
+            </plugin>
+            <!-- *IT 集成测试：绑定 integration-test/verify，缺了它 mvn verify 不会跑集成测试 -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-failsafe-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>integration-test</goal>
+                            <goal>verify</goal>
+                        </goals>
+                    </execution>
+                </executions>
             </plugin>
         </plugins>
     </build>

@@ -59,8 +59,10 @@ import java.util.concurrent.ThreadLocalRandom;
 @RequiredArgsConstructor
 public class AppointmentService extends ServiceImpl<AppointmentMapper, Appointment> {
 
-    // 到毫秒再补 4 位随机：秒级 + 3 位在并发抢号下会撞 uk_order_no（实测 24 线程同秒即重复，
-    // 接口对外只剩"服务器繁忙"）
+    // 到毫秒再补 8 位随机：同一毫秒内仍可能有多笔下单同时落库，4 位随机（1 万种）
+    // 在 100 并发的抢号场景下会撞 uk_order_no，重复键被转成 400"数据已存在"，
+    // 让"恰好 N 单成功"这类断言变得 flaky。8 位随机把碰撞概率压到可忽略；
+    // PC + 17 位时间 + 8 位随机 = 27 字符，order_no VARCHAR(32) 放得下。
     private static final DateTimeFormatter NO_STAMP = DateTimeFormatter.ofPattern("yyyyMMddHHmmssSSS");
 
     private final PetService petService;
@@ -497,7 +499,7 @@ public class AppointmentService extends ServiceImpl<AppointmentMapper, Appointme
 
     private String nextOrderNo() {
         return "PC" + LocalDateTime.now().format(NO_STAMP)
-                + String.format(Locale.ROOT, "%04d", ThreadLocalRandom.current().nextInt(10000));
+                + String.format(Locale.ROOT, "%08d", ThreadLocalRandom.current().nextInt(100_000_000));
     }
 
     private AppointmentVo detailOf(Appointment a, boolean withPatient) {
