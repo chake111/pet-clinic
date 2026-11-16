@@ -8,19 +8,20 @@
 | --- | --- | --- |
 | `env.txt` | 执行环境：操作系统、JDK、Maven、Docker、k6 版本与 MySQL 镜像标签 | 实跑前记录 |
 | `mvn-verify.txt` | `mvn --batch-mode --no-transfer-progress verify` 完整输出，含 failsafe 执行的 `*IT` 用例与结果 | `cd backend && mvn --batch-mode --no-transfer-progress verify` |
-| `k6-race.txt` | race 场景（100 个号源 / 100 VU）的 k6 控制台输出 | `bash tools/load/run-load.sh` |
-| `k6-oversell.txt` | oversell 场景（20 个号源 / 100 VU）的 k6 控制台输出 | `bash tools/load/run-load.sh` |
+| `fixture.log` | `fixture.sql` 导入结果；成功后写入一行夹具规模标记 | `bash tools/load/run-load.sh` |
+| `race.log` | race 场景（100 个号源 / 100 VU）的 k6 控制台输出 | `bash tools/load/run-load.sh` |
+| `oversell.log` | oversell 场景（20 个号源 / 100 VU）的 k6 控制台输出 | `bash tools/load/run-load.sh` |
 | `summary-race.json` | race 场景的 k6 汇总，含成功数、拒绝数与 `http_req_duration` p95 | `run-load.sh` 导出 |
 | `summary-oversell.json` | oversell 场景的 k6 汇总，含成功数、拒绝数与 p95 | `run-load.sh` 导出 |
-| `verify-sql.txt` | `verify.sql` 的查询输出：售出数量、订单状态分布与超卖核对 | 压测结束后连 `petclinicload` 库执行 |
+| `verify.log` | `verify.sql` 的查询输出：两条排班的余量、订单数、排队号与 PASS/FAIL | 压测结束后连 `petclinicload` 库执行 |
 
 清单之外的文件不作为本轮证据；上表文件缺失即视为对应步骤未执行，不用口头数字或其他轮次的日志代替。
 
 ## 引用规则
 
-- 数值以 `summary-race.json`、`summary-oversell.json`、`verify-sql.txt` 为准；`k6-*.txt` 与控制台输出用于对照，不作为唯一来源。
+- 数值以 `summary-race.json`、`summary-oversell.json`、`verify.log` 为准；`race.log`、`oversell.log` 用于对照，不作为唯一来源。
 - 根 README 的「实跑结果」只引用上述文件中的实测值；事后补写须与文件一致，不一致时以文件为准。
-- 压测的成功与拒绝按响应体 `code` 统计，不按 HTTP 状态码。
+- 压测的成功与拒绝按响应体 `code` 统计（拒绝还要求 `msg` 含「号源已约满」），不按 HTTP 状态码。
 - 集成测试用例数、通过数以 `mvn-verify.txt` 的 failsafe 汇总为准。
 
 ## 环境与复跑

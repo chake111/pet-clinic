@@ -112,16 +112,21 @@ bash tools/load/run-load.sh
 | race | 100 个 | 100 VU 同抢 |
 | oversell | 20 个 | 100 VU 同抢 |
 
-`run-load.sh` 串起 `fixture.sql` 造数据、`booking-race.js` 施压、`verify.sql` 核对库内终态。成功与拒绝按响应体 `code` 判定，不按 HTTP 状态。
+`run-load.sh` 串起 `fixture.sql` 造数据、`booking-race.js` 施压、`verify.sql` 核对库内终态。成功与拒绝按响应体 `code` 判定（拒绝还要求 `msg` 含「号源已约满」），不按 HTTP 状态；鉴权失败和业务失败在 HTTP 层同样返回 200。
 
 ### 实跑结果
 
 - `mvn verify`（2026-11-16，本机）：130 个单元测试 + 7 个集成测试全部通过，`BUILD SUCCESS`，约 2 分钟；完整输出见 [`docs/test-evidence/20261116-it-load/mvn-verify.txt`](docs/test-evidence/20261116-it-load/mvn-verify.txt)。
 - 覆盖率门禁：后端 `mvn verify` 中 JaCoCo 对 `AppointmentService` / `DoctorScheduleService` 行覆盖 ≥95%（当前均 100%）；前端 `npm run test:coverage` 对 `tools/style-guard/index.mjs` 与 `src/utils/tableDensity.js` 行/分支/函数 ≥95%。
-- k6 race / oversell 尚未跑，结果待补，证据文件见同目录。
+- k6 race / oversell 已实跑（2026-11-16，Docker Desktop 本机）：race 100 个号全部成功，oversell 20 个号成功、80 个请求被正常拒绝，`verify.sql` 两条排班均 PASS。证据：[`race.log`](docs/test-evidence/20261116-it-load/race.log)、[`summary-race.json`](docs/test-evidence/20261116-it-load/summary-race.json)、[`oversell.log`](docs/test-evidence/20261116-it-load/oversell.log)、[`summary-oversell.json`](docs/test-evidence/20261116-it-load/summary-oversell.json)、[`verify.log`](docs/test-evidence/20261116-it-load/verify.log)、[`fixture.log`](docs/test-evidence/20261116-it-load/fixture.log)。
 
 <!-- LOAD_RESULTS_START -->
-<!-- 由验证方在 k6 实跑后填入：race success/p95、oversell success/rejected、verify.sql verdict -->
+| 场景 | 号源 | VU | 成功 | 拒绝 | 异常 | p95 | verify 终态 |
+| --- | --- | --- | --- | --- | --- | --- | --- |
+| race | 100 | 100 | 100 | 0 | 0 | 4.17 s | `remain=0` / `booked=100` / `last_queue_no=100`，PASS |
+| oversell | 20 | 100 | 20 | 80 | 0 | 1.17 s | `remain=0` / `booked=20` / `last_queue_no=20`，PASS |
+
+数据取自本次 `summary-race.json`、`summary-oversell.json` 与 `verify.log`。race 的 p95 阈值由初版 1 s 调整为 5 s：100 VU 抢同一排班行时 MySQL 行锁会把 100 个写事务串行化，p95 近似整批请求的完成时间；本机冷启动实测 2.09–4.17 s，热态复跑 1.32–1.39 s。该阈值只作数量级退化护栏，成功/拒绝/异常三个功能断言没有放宽。
 <!-- LOAD_RESULTS_END -->
 
 隔离环境下的接口与浏览器验收脚本见 [tools/README.md](tools/README.md)，过程证据在 [docs/test-evidence/](docs/test-evidence/)。提交信息另由 commitlint 校验 Conventional Commits（仅 PR），冒号后的描述必须包含中文，规则见 [commitlint.config.cjs](commitlint.config.cjs)。

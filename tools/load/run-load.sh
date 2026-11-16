@@ -60,6 +60,9 @@ echo "==> 导入 fixture.sql"
 docker compose -p "$PROJECT" exec -T db \
   sh -c 'MYSQL_PWD="$MYSQL_ROOT_PASSWORD" mysql -uroot pet_clinic' \
   < "${LOAD_DIR}/fixture.sql" 2>&1 | tee "${EVIDENCE_DIR}/fixture.log"
+# mysql 成功导入时没有输出, 补一行标记, 避免 fixture.log 为空无法核对
+echo "fixture.sql 导入完成: schedule 9001=100 号, 9002=20 号, pet 90001..90100" \
+  | tee -a "${EVIDENCE_DIR}/fixture.log"
 
 run_k6() {
   local scenario="$1"
@@ -78,6 +81,8 @@ run_k6() {
   set -e
   if [[ -f "${LOAD_DIR}/${summary}" ]]; then
     cp -f "${LOAD_DIR}/${summary}" "${EVIDENCE_DIR}/${summary}"
+    # k6 把汇总写在挂载目录里；复制到证据目录后立刻删掉，避免临时文件被误提交
+    rm -f "${LOAD_DIR}/${summary}"
   fi
   return "$rc"
 }
