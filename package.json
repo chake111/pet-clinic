@@ -1,0 +1,13 @@
+{
+  "name": "pet-clinic-repo",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Repository-level commit message linting",
+  "scripts": {
+    "commitlint": "commitlint --from origin/main --to HEAD --verbose"
+  },
+  "devDependencies": {
+    "@commitlint/cli": "^21.2.4",
+    "@commitlint/config-conventional": "^21.2.4"
+  }
+}

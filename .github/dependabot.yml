@@ -7,6 +7,20 @@ updates:
     schedule:
       interval: weekly
     open-pull-requests-limit: 5
+    commit-message:
+      prefix: "chore(deps): 升级"
     groups:
       github-actions:
         patterns: ["*"]
+
+  # 根目录的 commitlint 依赖也需要跟进
+  - package-ecosystem: npm
+    directory: "/"
+    schedule:
+      interval: weekly
+    open-pull-requests-limit: 5
+    commit-message:
+      prefix: "chore(deps-dev): 升级"
+    groups:
+      commitlint:
+        patterns: ["@commitlint/*"]

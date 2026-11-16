@@ -81,7 +81,7 @@
 
 ## 测试与质量
 
-CI 覆盖后端单元测试与前端 lint / test / build；隔离环境下的接口与浏览器验收脚本见 [tools/README.md](tools/README.md)，过程证据在 [docs/test-evidence/](docs/test-evidence/)。
+CI 覆盖后端单元测试与前端 lint / test / build；隔离环境下的接口与浏览器验收脚本见 [tools/README.md](tools/README.md)，过程证据在 [docs/test-evidence/](docs/test-evidence/)。提交信息另由 commitlint 校验 Conventional Commits（仅 PR），冒号后的描述必须包含中文，规则见 [commitlint.config.cjs](commitlint.config.cjs)。
 
 ## Docker 一键启动（演示环境）
 
