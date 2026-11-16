@@ -1,0 +1,65 @@
+name: PR-Agent
+
+on:
+  pull_request:
+    types: [opened, reopened, ready_for_review]
+  issue_comment:
+    types: [created]
+
+# 发评论需要 issue / PR 写权限；代码内容仍然只读。
+permissions:
+  contents: read
+  issues: write
+  pull-requests: write
+
+concurrency:
+  group: pr-agent-${{ github.event.pull_request.number || github.event.issue.number }}
+  cancel-in-progress: false
+
+jobs:
+  review:
+    name: review
+    # 只审本仓库分支的 PR；fork PR 拿不到 secret，等切到 pull_request_target 再放开。
+    # 评论命令只认仓库 owner / member / collaborator，避免公开仓库被路人触发烧 token。
+    if: >-
+      github.event.sender.type != 'Bot' &&
+      (
+        (
+          github.event_name == 'pull_request' &&
+          github.event.pull_request.head.repo.full_name == github.repository
+        ) ||
+        (
+          github.event_name == 'issue_comment' &&
+          github.event.issue.pull_request &&
+          contains(fromJSON('["OWNER", "MEMBER", "COLLABORATOR"]'), github.event.comment.author_association) &&
+          startsWith(github.event.comment.body, '/')
+        )
+      )
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      # 没配密钥时让 job 正常结束，而不是在 PR 上留一个红叉。
+      - name: 检查 DeepSeek 密钥
+        id: key
+        env:
+          DEEPSEEK_API_KEY: ${{ secrets.DEEPSEEK_API_KEY }}
+        run: |
+          if [ -z "$DEEPSEEK_API_KEY" ]; then
+            echo "present=false" >> "$GITHUB_OUTPUT"
+            echo "::notice::DEEPSEEK_API_KEY 未配置，跳过 PR-Agent"
+          else
+            echo "present=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      # 不用 checkout：PR-Agent 通过 GitHub API 拉取 diff，并从默认分支读取 .pr_agent.toml。
+      - name: PR-Agent
+        if: steps.key.outputs.present == 'true'
+        uses: the-pr-agent/pr-agent@e673a02076ce09a4726c3d0c3cc85780e59ca52b # v0.50.0
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          DEEPSEEK_API_KEY: ${{ secrets.DEEPSEEK_API_KEY }}
+          CONFIG__MODEL: deepseek/deepseek-chat
+          CONFIG__FALLBACK_MODELS: '["deepseek/deepseek-chat"]'
+          GITHUB_ACTION_CONFIG__AUTO_REVIEW: 'true'
+          GITHUB_ACTION_CONFIG__AUTO_DESCRIBE: 'true'
+          GITHUB_ACTION_CONFIG__AUTO_IMPROVE: 'false'
