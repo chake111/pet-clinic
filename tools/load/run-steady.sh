@@ -72,8 +72,8 @@ cleanup() {
   local rc=$?
   if [[ "${KEEP:-1}" == "1" ]]; then
     echo "KEEP=1: 保留 ${PROJECT} 的容器与卷供截图"
-    echo "  Grafana:    http://127.0.0.1:${PETCLINIC_GRAFANA_PORT:-3000}"
-    echo "  Prometheus: http://127.0.0.1:${PETCLINIC_PROM_PORT:-9090}/targets"
+    echo "  Grafana:    http://127.0.0.1:${GRAFANA_HOST_PORT:-${PETCLINIC_GRAFANA_PORT:-3000}}"
+    echo "  Prometheus: http://127.0.0.1:${PROM_HOST_PORT:-${PETCLINIC_PROM_PORT:-9090}}/targets"
     echo "  清理: docker compose -p ${PROJECT} --profile observability down -v"
   else
     echo "清理 ${PROJECT} 的容器与卷..."
@@ -95,6 +95,12 @@ echo "==> 启动 db + backend + prometheus + grafana (项目 ${PROJECT}, profile
 docker compose -p "$PROJECT" --profile observability up -d --build --wait --wait-timeout 420 \
   db backend prometheus grafana
 
+# .env 里的端口覆盖不会自动进入当前 shell；以 compose 实际发布的端口为准
+PROM_HOST_PORT="$(docker compose -p "$PROJECT" port prometheus 9090 2>/dev/null | sed 's/.*://' | tr -d '\r' || true)"
+PROM_HOST_PORT="${PROM_HOST_PORT:-${PETCLINIC_PROM_PORT:-9090}}"
+GRAFANA_HOST_PORT="$(docker compose -p "$PROJECT" port grafana 3000 2>/dev/null | sed 's/.*://' | tr -d '\r' || true)"
+GRAFANA_HOST_PORT="${GRAFANA_HOST_PORT:-${PETCLINIC_GRAFANA_PORT:-3000}}"
+
 echo "==> 导入 fixture.sql"
 docker compose -p "$PROJECT" exec -T db \
   sh -c 'MYSQL_PWD="$MYSQL_ROOT_PASSWORD" mysql -uroot pet_clinic' \
@@ -104,7 +110,7 @@ echo "fixture.sql 导入完成: schedule 9001=100 号, 9002=20 号, pet 90001..9
   | tee -a "${EVIDENCE_DIR}/fixture.log"
 
 echo "==> 稳态压测: RATE=${RATE} DURATION=${DURATION} PRE_VUS=${PRE_VUS}"
-echo "Grafana 面板: http://127.0.0.1:${PETCLINIC_GRAFANA_PORT:-3000} (压测结束后选择覆盖 3 分钟的窗口)"
+echo "Grafana 面板: http://127.0.0.1:${GRAFANA_HOST_PORT} (压测结束后选择覆盖 3 分钟的窗口)"
 
 SUMMARY_NAME="summary-steady.json"
 # 先删旧汇总与旧日志: 本次 k6 若在写文件前失败, 不能把上一次的 summary 当成本次证据
@@ -139,13 +145,25 @@ fi
 echo "==> 抓取 Prometheus targets"
 targets_rc=0
 set +e
-# 宿主机端口用与 compose 相同的变量, 端口被占用改过变量时这里也跟着变
-curl -fsS "http://127.0.0.1:${PETCLINIC_PROM_PORT:-9090}/api/v1/targets" \
+# 宿主机端口以 compose 实际发布为准, .env 里的覆盖也能生效
+curl -fsS "http://127.0.0.1:${PROM_HOST_PORT}/api/v1/targets" \
   > "${EVIDENCE_DIR}/prometheus-targets.json"
 targets_rc=$?
 set -e
 if [[ "$targets_rc" -ne 0 ]]; then
-  echo "错误: 抓取 http://127.0.0.1:${PETCLINIC_PROM_PORT:-9090}/api/v1/targets 失败" >&2
+  echo "错误: 抓取 http://127.0.0.1:${PROM_HOST_PORT}/api/v1/targets 失败" >&2
+else
+  # HTTP 200 不代表抓取健康: target 可能是 down, 这样稳态数字没有服务端指标佐证
+  if ! node -e '
+const fs = require("fs");
+const data = JSON.parse(fs.readFileSync(process.argv[1], "utf8"));
+const up = (data.data && data.data.activeTargets || []).some(
+  (t) => t.labels && t.labels.job === "pet-clinic-backend" && t.health === "up");
+process.exit(up ? 0 : 1);
+' "${EVIDENCE_DIR}/prometheus-targets.json"; then
+    echo "错误: Prometheus 没有健康的 pet-clinic-backend target" >&2
+    targets_rc=1
+  fi
 fi
 
 final_rc=0
