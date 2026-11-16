@@ -21,7 +21,7 @@ BASE_URL=http://backend:8081/api
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 ROOT_DIR="$(cd "${SCRIPT_DIR}/../.." && pwd)"
 LOAD_DIR="${ROOT_DIR}/tools/load"
-EVIDENCE_DIR="${ROOT_DIR}/docs/test-evidence/20261116-it-load"
+EVIDENCE_DIR="${EVIDENCE_DIR:-${ROOT_DIR}/docs/test-evidence/20261116-it-load}"
 
 cd "$ROOT_DIR"
 mkdir -p "$EVIDENCE_DIR"
