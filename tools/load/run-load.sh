@@ -64,6 +64,8 @@ docker compose -p "$PROJECT" exec -T db \
 run_k6() {
   local scenario="$1"
   local summary="summary-${scenario}.json"
+  # 先删旧汇总：本次 k6 若在写文件前失败，不能把上一次的 summary 当成本次证据
+  rm -f "${LOAD_DIR}/${summary}" "${EVIDENCE_DIR}/${summary}"
   local rc
   set +e
   MSYS_NO_PATHCONV=1 docker run --rm --network "$NETWORK" \
