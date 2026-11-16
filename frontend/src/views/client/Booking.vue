@@ -8,6 +8,7 @@ import {
 } from '@/api/user'
 import { PERIOD, text } from '@/utils/dict'
 import { dayLabel, money, slotEnded, toDate } from '@/utils/format'
+import { newIdempotencyKey } from '@/utils/idempotencyKey'
 import { groupSlotsByDate, localNow } from '@/utils/schedule'
 import ImageUpload from '@/components/ImageUpload.vue'
 import PetForm from '@/components/PetForm.vue'
@@ -32,6 +33,9 @@ const busy = ref(false)
 const petOpen = ref(false)
 const payOpen = ref(false)
 const paidOrder = ref(null)
+// 下单幂等键跟着"这一次下单意图"走：首次提交与网络失败后的原样重试共用一个键，
+// 否则服务端会把重试当新单、二次占号。
+const idemKey = ref(newIdempotencyKey())
 const selectedDate = ref('')
 const errors = reactive({ scheduleId: '', petId: '', symptom: '' })
 const petSection = ref(null)
@@ -101,6 +105,9 @@ function selectSlot(slot) {
 watch(() => form.petId, (value) => { if (value) errors.petId = '' })
 watch(() => form.scheduleId, (value) => { if (value) errors.scheduleId = '' })
 watch(() => form.symptom, (value) => { if (value.trim()) errors.symptom = '' })
+// 换宠物或时段是新的一次下单意图，键必须换新；网络失败后原表单重试则沿用旧键，
+// 这样服务端才能把重试认成同一单而不是重复占号。
+watch(() => [form.petId, form.scheduleId], () => { idemKey.value = newIdempotencyKey() })
 watch([selectedDate, scheduleSection], async () => {
   await nextTick()
   const strip = scheduleSection.value?.querySelector('.date-strip')
@@ -175,8 +182,13 @@ async function submit() {
   if (invalidField) return focusError(invalidField)
   busy.value = true
   try {
-    const vo = await createAppointment({ ...form, doctorId, symptom: form.symptom.trim() })
+    const vo = await createAppointment(
+      { ...form, doctorId, symptom: form.symptom.trim() },
+      { headers: { 'Idempotency-Key': idemKey.value } }
+    )
     paidOrder.value = vo
+    // 下单成功即结束这次意图：换新键，避免之后的新单复用旧键命中已完成预约
+    idemKey.value = newIdempotencyKey()
     payOpen.value = true
   } catch {
     // 提交失败保留宠物、时段和症状，提示由请求层负责。

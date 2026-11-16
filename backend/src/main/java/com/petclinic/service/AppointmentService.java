@@ -20,9 +20,12 @@ import com.petclinic.vo.PetDisplayVo;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanUtils;
+import org.springframework.dao.DuplicateKeyException;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.PlatformTransactionManager;
+import org.springframework.transaction.TransactionDefinition;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.transaction.annotation.Isolation;
+import org.springframework.transaction.support.TransactionTemplate;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -30,6 +33,7 @@ import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.concurrent.ThreadLocalRandom;
+import java.util.regex.Pattern;
 
 /**
  * 预约订单：本系统的核心状态机。只面向到院门诊——图文问诊免费、不建订单，
@@ -65,6 +69,10 @@ public class AppointmentService extends ServiceImpl<AppointmentMapper, Appointme
     // PC + 17 位时间 + 8 位随机 = 27 字符，order_no VARCHAR(32) 放得下。
     private static final DateTimeFormatter NO_STAMP = DateTimeFormatter.ofPattern("yyyyMMddHHmmssSSS");
 
+    // 客户端生成的不透明键：只允许 URL/头值安全的可打印字符，长度 8–64 与列宽对齐。
+    // 收紧格式是为了让"脏键"在下单入口就报 400，而不是落库后因截断/排序规则差异产生诡异重放。
+    private static final Pattern IDEM_KEY = Pattern.compile("[A-Za-z0-9._:-]{8,64}");
+
     private final PetService petService;
     private final PetMapper petMapper;
     private final DoctorMapper doctorMapper;
@@ -74,11 +82,63 @@ public class AppointmentService extends ServiceImpl<AppointmentMapper, Appointme
     private final ConsultSessionMapper sessionMapper;
     private final MedicalRecordMapper recordMapper;
     private final AppProperties props;
+    private final PlatformTransactionManager txManager;
 
     // ---------------------------------------------------------------- 下单
 
-    @Transactional(isolation = Isolation.READ_COMMITTED)
+    /** 无幂等键的旧入口，行为与改造前一致 */
     public AppointmentVo create(AppointmentForm req) {
+        return create(req, null);
+    }
+
+    /**
+     * 带幂等键的下单。
+     *
+     * <p>幂等键只解决"客户端重试不要多落单"：事务外先按 (userId, key) 回读一次，
+     * 命中就原样返回；事务内拿到排班行锁后再查一次，作为并发同键的权威判定。
+     * 锁外的预查只是重试快路径——它让"时段已过期/已停诊/排班已删"的重试仍能拿到原单，
+     * 而不是先被校验拦下报错。
+     *
+     * <p>这里不能用 @Transactional 包整个方法：同类内 create(req) 自调用不走代理，
+     * 而且唯一键冲突必须先随事务回滚（扣号与 last_queue_no 一起退回）之后，
+     * 才能在事务外重新读到冲突方已提交的原单。事务边界交给 TransactionTemplate。
+     */
+    public AppointmentVo create(AppointmentForm req, String idemKey) {
+        String key = normalizeIdemKey(idemKey);
+        // 键非空才需要当前用户；无键路径仍由 petService.requireOwned 做登录与归属校验，
+        // 保持原有调用顺序与 401/404 语义不变。
+        Long userId = key == null ? null : UserContext.requireId();
+        if (key != null) {
+            Appointment existing = baseMapper.selectByUserAndIdemKey(userId, key);
+            if (existing != null) {
+                return replayOf(existing, req);
+            }
+        }
+
+        TransactionTemplate tx = new TransactionTemplate(txManager);
+        // READ_COMMITTED：排班锁串行化下单后，这里必须看得见前一个请求刚提交的预约，
+        // 否则锁内幂等回读与"同宠物同时段"校验都会读到旧快照。
+        tx.setIsolationLevel(TransactionDefinition.ISOLATION_READ_COMMITTED);
+        try {
+            return tx.execute(status -> doCreate(req, key, userId));
+        } catch (DuplicateKeyException e) {
+            if (key == null) {
+                throw e;
+            }
+            // 事务已经回滚（扣号与 last_queue_no 一并退回），此时才读得到冲突方提交的原单。
+            Appointment existing = baseMapper.selectByUserAndIdemKey(userId, key);
+            if (existing == null) {
+                // 撞的是 uk_order_no（27 位随机串重复），与幂等键无关，按原语义抛出
+                throw e;
+            }
+            log.warn("下单唯一键冲突命中幂等键，回读原单：user={} key={} appointment={}",
+                    userId, key, existing.getId());
+            return replayOf(existing, req);
+        }
+    }
+
+    /** 下单主体。key 为 null 时与改造前完全一致。 */
+    private AppointmentVo doCreate(AppointmentForm req, String key, Long userId) {
         Pet pet = petService.requireOwned(req.getPetId());
         Doctor doctor = doctorMapper.selectById(req.getDoctorId());
         if (doctor == null) {
@@ -96,6 +156,14 @@ public class AppointmentService extends ServiceImpl<AppointmentMapper, Appointme
         // 同一条锁读也挡住"给刚被删掉的排班继续扣号"：删行是物理 DELETE，读不到就是不存在。
         // 锁顺序仍是"下单只锁排班、再插预约"，与取消路径（先锁预约再退号）同向，不会成环。
         DoctorSchedule sch = scheduleMapper.selectByIdForUpdate(req.getScheduleId());
+        // 拿到排班行锁后先做幂等回读：并发同键的请求都在这把锁上排队，
+        // 第一个提交后，后面每个都会在这里看到原单，不会重复扣号。
+        if (key != null) {
+            Appointment existing = baseMapper.selectByUserAndIdemKey(userId, key);
+            if (existing != null) {
+                return replayOf(existing, req);
+            }
+        }
         if (sch == null) {
             throw BizException.notFound("排班时段");
         }
@@ -117,6 +185,7 @@ public class AppointmentService extends ServiceImpl<AppointmentMapper, Appointme
 
         Appointment a = new Appointment();
         a.setOrderNo(nextOrderNo());
+        a.setIdemKey(key);
         a.setUserId(pet.getUserId());
         a.setPetId(pet.getId());
         a.setDoctorId(doctor.getId());
@@ -166,9 +235,11 @@ public class AppointmentService extends ServiceImpl<AppointmentMapper, Appointme
         if (isPayExpired(a)) {
             throw new BizException("订单已超过 " + props.getPayTimeoutMinutes() + " 分钟未支付，请重新预约");
         }
+        // 同一时刻只取一次：写库与回填响应必须一致，否则响应里的 payTime 会和库里有毫秒级偏差。
+        LocalDateTime now = LocalDateTime.now();
         if (baseMapper.update(null, Wrappers.<Appointment>lambdaUpdate()
                 .set(Appointment::getPayStatus, Appointment.PAY_PAID)
-                .set(Appointment::getPayTime, LocalDateTime.now())
+                .set(Appointment::getPayTime, now)
                 .set(Appointment::getPayType, "MOCK")
                 .eq(Appointment::getId, id)
                 .eq(Appointment::getStatus, Appointment.ST_PENDING)
@@ -176,6 +247,8 @@ public class AppointmentService extends ServiceImpl<AppointmentMapper, Appointme
             throw new BizException("订单状态已变化，请刷新后重试");
         }
         a.setPayStatus(Appointment.PAY_PAID);
+        a.setPayTime(now);
+        a.setPayType("MOCK");
         return detailOf(a, false);
     }
 
@@ -440,6 +513,33 @@ public class AppointmentService extends ServiceImpl<AppointmentMapper, Appointme
     }
 
     // ---------------------------------------------------------------- 内部
+
+    /** null 或全空白视为未传键；trim 后必须匹配 [A-Za-z0-9._:-]{8,64} */
+    private static String normalizeIdemKey(String idemKey) {
+        if (idemKey == null || idemKey.isBlank()) {
+            return null;
+        }
+        String key = idemKey.trim();
+        if (!IDEM_KEY.matcher(key).matches()) {
+            throw new BizException("幂等键格式不正确");
+        }
+        return key;
+    }
+
+    /**
+     * 幂等键命中后返回原单。参数不同（换宠物/换时段）不报错：键表达的是"这是同一次下单重试"，
+     * 以首次落库的结果为准更安全——报错会让客户端拿着同一个键永远无法收敛。
+     * 但要把分歧记进 WARN，便于排查客户端是否错误复用了键。
+     */
+    private AppointmentVo replayOf(Appointment existing, AppointmentForm req) {
+        if (!Objects.equals(existing.getPetId(), req.getPetId())
+                || !Objects.equals(existing.getScheduleId(), req.getScheduleId())) {
+            log.warn("幂等键重放参数不一致，返回原单：appointment={} 首次 pet={} schedule={} 本次 pet={} schedule={}",
+                    existing.getId(), existing.getPetId(), existing.getScheduleId(),
+                    req.getPetId(), req.getScheduleId());
+        }
+        return detailOf(existing, false);
+    }
 
     public static class VisitOverdueException extends BizException {
         public VisitOverdueException() { super("预约已过就诊日，已标记未到诊"); }

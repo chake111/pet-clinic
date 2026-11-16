@@ -22,6 +22,7 @@ import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
+import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilder;
 import org.testcontainers.containers.MySQLContainer;
 
 import java.math.BigDecimal;
@@ -63,15 +64,15 @@ public abstract class MySqlITSupport {
     /** 与 sql/02_data.sql 的种子账号密码一致（明文 123456） */
     protected static final String SEED_PASSWORD = "123456";
 
-    /** sql/02_data.sql 里 123456 的 BCrypt 哈希（强度 10） */
-    private static final String SEED_PASSWORD_HASH =
+    /** sql/02_data.sql 里 123456 的 BCrypt 哈希（强度 10）；子类插第二个账号时可直接复用 */
+    protected static final String SEED_PASSWORD_HASH =
             "$2a$10$0yzLXUNo8OV8t9fBdTlYFumqcM4IBAsInS.neeSzPwQvEtLKjvIGm";
 
-    /** schema 里的全部 12 张表；外键检查关闭后按任意顺序清空 */
+    /** schema 里的全部 13 张表；外键检查关闭后按任意顺序清空 */
     private static final String[] ALL_TABLES = {
             "appointment", "consult_message", "consult_session", "medical_record",
             "doctor_review", "notice", "doctor_schedule", "doctor",
-            "admin_user", "sys_user", "pet", "department"
+            "admin_user", "sys_user", "pet", "department", "scheduler_lease"
     };
 
     protected static final long IT_USER_ID = 9001L;
@@ -227,6 +228,29 @@ public abstract class MySqlITSupport {
                         .header(authHeaderName(), bearer(token))
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(body)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.code").value(200))
+                .andReturn();
+        return responseJson(result);
+    }
+
+    /** 与 5 参版本相同，但带上 Idempotency-Key（null 表示不发该头） */
+    protected JsonNode createAppointment(MockMvc mvc, String token, long petId,
+                                         long doctorId, long scheduleId, String symptom,
+                                         String idemKey) throws Exception {
+        Map<String, Object> body = new LinkedHashMap<>();
+        body.put("petId", petId);
+        body.put("doctorId", doctorId);
+        body.put("scheduleId", scheduleId);
+        body.put("symptom", symptom);
+        MockHttpServletRequestBuilder request = post("/client/appointment")
+                .header(authHeaderName(), bearer(token))
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(body));
+        if (idemKey != null) {
+            request.header("Idempotency-Key", idemKey);
+        }
+        MvcResult result = mvc.perform(request)
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.code").value(200))
                 .andReturn();

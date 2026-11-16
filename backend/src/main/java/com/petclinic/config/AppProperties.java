@@ -12,6 +12,7 @@ public class AppProperties {
 
     private Jwt jwt = new Jwt();
     private Upload upload = new Upload();
+    private Scheduler scheduler = new Scheduler();
 
     /** 未支付订单自动释放号源的分钟数 */
     private int payTimeoutMinutes = 30;
@@ -42,5 +43,14 @@ public class AppProperties {
          */
         private String urlPrefix = "/api/uploads";
         private long maxSizeBytes = 5 * 1024 * 1024;
+    }
+
+    @Data
+    public static class Scheduler {
+        /**
+         * 定时清扫任务的多实例租约有效期（秒）。
+         * 远大于正常一轮耗时；持有者进程挂掉后最多等这么久由其他实例接管。
+         */
+        private long leaseSeconds = 300;
     }
 }

@@ -30,10 +30,13 @@ public class AppointmentController {
     private final AppointmentService appointmentService;
     private final MedicalRecordService recordService;
 
-    @Operation(summary = "下单预约（占用号源，30 分钟内需支付）")
+    @Operation(summary = "下单预约（占用号源，30 分钟内需支付）",
+            description = "可选请求头 Idempotency-Key（8–64 字符，仅限字母数字与 . _ : -）；"
+                    + "同一用户携带同一个键重放时返回原单，不重复占号")
     @PostMapping
-    public Result<AppointmentVo> create(@Valid @RequestBody AppointmentForm req) {
-        return Result.ok("预约成功，请在有效期内支付", appointmentService.create(req));
+    public Result<AppointmentVo> create(@Valid @RequestBody AppointmentForm req,
+                                        @RequestHeader(value = "Idempotency-Key", required = false) String idemKey) {
+        return Result.ok("预约成功，请在有效期内支付", appointmentService.create(req, idemKey));
     }
 
     @Operation(summary = "模拟支付")

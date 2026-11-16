@@ -187,6 +187,7 @@ DROP TABLE IF EXISTS `appointment`;
 CREATE TABLE `appointment` (
   `id`               BIGINT        NOT NULL AUTO_INCREMENT COMMENT '主键',
   `order_no`         VARCHAR(32)   NOT NULL                COMMENT '预约单号',
+  `idem_key`         VARCHAR(64) CHARACTER SET utf8mb4 COLLATE utf8mb4_bin DEFAULT NULL COMMENT '下单幂等键，客户端生成；同用户同键只落一单',
   `user_id`          BIGINT        NOT NULL                COMMENT 'sys_user.id',
   `pet_id`           BIGINT        NOT NULL                COMMENT 'pet.id',
   `doctor_id`        BIGINT        NOT NULL                COMMENT 'doctor.id',
@@ -216,6 +217,8 @@ CREATE TABLE `appointment` (
   `deleted`          TINYINT       NOT NULL DEFAULT 0      COMMENT '逻辑删除',
   PRIMARY KEY (`id`),
   UNIQUE KEY `uk_order_no` (`order_no`),
+  -- 幂等键按用户维度唯一；MySQL 唯一索引允许多个 NULL，未带键的历史单与普通单不受影响
+  UNIQUE KEY `uk_user_idem` (`user_id`, `idem_key`),
   KEY `idx_user_id` (`user_id`),
   KEY `idx_doctor_date` (`doctor_id`, `appointment_date`),
   KEY `idx_schedule` (`schedule_id`),
@@ -364,3 +367,17 @@ CREATE TABLE `notice` (
   PRIMARY KEY (`id`),
   KEY `idx_status_type` (`status`, `type`)
 ) ENGINE = InnoDB DEFAULT CHARSET = utf8mb4 COMMENT = '公告科普';
+
+-- ---------------------------------------------------------------------
+-- 13. scheduler_lease  定时任务多实例租约
+--     清扫任务每分钟跑一轮，多实例部署时同一轮只让一个实例执行；
+--     租期一律用数据库时钟 NOW(3)，避免多机时钟漂移导致提前或重复接管
+-- ---------------------------------------------------------------------
+DROP TABLE IF EXISTS `scheduler_lease`;
+CREATE TABLE `scheduler_lease` (
+  `name`         VARCHAR(64)  NOT NULL COMMENT '任务名',
+  `holder`       VARCHAR(128) NOT NULL COMMENT '持有者：主机名/进程号/实例随机后缀',
+  `locked_until` DATETIME(3)  NOT NULL COMMENT '租约到期时刻（数据库时钟）',
+  `locked_at`    DATETIME(3)  NOT NULL COMMENT '获得或续租时刻（数据库时钟）',
+  PRIMARY KEY (`name`)
+) ENGINE = InnoDB DEFAULT CHARSET = utf8mb4 COMMENT = '定时任务多实例租约';

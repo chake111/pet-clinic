@@ -42,7 +42,10 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.mockito.junit.jupiter.MockitoSettings;
 import org.mockito.quality.Strictness;
+import org.springframework.dao.DuplicateKeyException;
 import org.springframework.test.util.ReflectionTestUtils;
+import org.springframework.transaction.PlatformTransactionManager;
+import org.springframework.transaction.support.SimpleTransactionStatus;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
@@ -92,6 +95,8 @@ class AppointmentServiceCoverageTest {
     private MedicalRecordMapper recordMapper;
     @Mock
     private AppProperties props;
+    @Mock
+    private PlatformTransactionManager txManager;
 
     private AppointmentService service;
 
@@ -107,9 +112,11 @@ class AppointmentServiceCoverageTest {
     @BeforeEach
     void setUp() {
         service = new AppointmentService(petService, petMapper, doctorMapper, departmentMapper,
-                scheduleMapper, sysUserMapper, sessionMapper, recordMapper, props);
+                scheduleMapper, sysUserMapper, sessionMapper, recordMapper, props, txManager);
         ReflectionTestUtils.setField(service, "baseMapper", appointmentMapper);
 
+        // TransactionTemplate 只要求事务管理器返回一个状态对象，提交/回滚在 mock 上是空操作
+        when(txManager.getTransaction(any())).thenReturn(new SimpleTransactionStatus());
         when(props.getPayTimeoutMinutes()).thenReturn(30);
         when(petService.requireOwned(any())).thenReturn(pet(1L, 7L));
         when(appointmentMapper.insert(any(Appointment.class))).thenReturn(1);
@@ -340,6 +347,108 @@ class AppointmentServiceCoverageTest {
         verify(sysUserMapper, never()).selectBatchIds(anyCollection());
     }
 
+    @Test
+    void createWithIdemKeyPersistsKeyOnInsert() {
+        UserContext.set(client(7L));
+        when(doctorMapper.selectById(2L)).thenReturn(doctor(2L, 3L, 1, new BigDecimal("50")));
+        when(scheduleMapper.selectByIdForUpdate(4L)).thenReturn(schedule(4L, 2L, LocalDate.now().plusDays(1)));
+        when(scheduleMapper.selectLastQueueNoForUpdate(4L)).thenReturn(3);
+        when(appointmentMapper.insert(any(Appointment.class))).thenAnswer(invocation -> {
+            Appointment inserted = invocation.getArgument(0);
+            inserted.setId(300L);
+            return 1;
+        });
+
+        AppointmentVo vo = service.create(form(1L, 2L, 4L, "发热"), "retry-0001-key");
+
+        assertThat(vo.getId()).isEqualTo(300L);
+        ArgumentCaptor<Appointment> captor = ArgumentCaptor.forClass(Appointment.class);
+        verify(appointmentMapper).insert(captor.capture());
+        assertThat(captor.getValue().getIdemKey()).isEqualTo("retry-0001-key");
+        // 一次事务外预查 + 一次排班锁内复查
+        verify(appointmentMapper, times(2)).selectByUserAndIdemKey(7L, "retry-0001-key");
+    }
+
+    @Test
+    void createRejectsMalformedIdemKey() {
+        UserContext.set(client(7L));
+
+        for (String bad : List.of("bad key!", "short", "x".repeat(65))) {
+            BizException e = biz(() -> service.create(form(1L, 2L, 4L, "发热"), bad));
+            assertThat(e.getCode()).isEqualTo(400);
+            assertThat(e.getMessage()).contains("幂等键格式不正确");
+        }
+        verify(appointmentMapper, never()).insert(any(Appointment.class));
+        verify(scheduleMapper, never()).selectByIdForUpdate(any());
+    }
+
+    @Test
+    void createReplaysOriginalOrderWhenInsertHitsUniqueKey() {
+        UserContext.set(client(7L));
+        String key = "concurrent-key-01";
+        when(doctorMapper.selectById(2L)).thenReturn(doctor(2L, 3L, 1, new BigDecimal("50")));
+        when(scheduleMapper.selectByIdForUpdate(4L)).thenReturn(schedule(4L, 2L, LocalDate.now().plusDays(1)));
+        // 预查与锁内复查都没命中，插入时撞唯一键；回读拿到并发请求提交的原单
+        Appointment winner = pendingAppointment(55L, 7L);
+        when(appointmentMapper.selectByUserAndIdemKey(7L, key)).thenReturn(null, null, winner);
+        when(appointmentMapper.insert(any(Appointment.class)))
+                .thenThrow(new DuplicateKeyException("uk_user_idem"));
+
+        AppointmentVo vo = service.create(form(1L, 2L, 4L, "发热"), key);
+
+        assertThat(vo.getId()).isEqualTo(55L);
+        // 扣号确实发生过，回滚由 TransactionTemplate 负责（唯一键冲突后余量与计数一起退回）
+        verify(scheduleMapper).tryOccupy(4L);
+        verify(appointmentMapper, times(1)).insert(any(Appointment.class));
+    }
+
+    @Test
+    void createRethrowsDuplicateKeyWhenNoIdemRowCanBeFound() {
+        UserContext.set(client(7L));
+        String key = "concurrent-key-02";
+        when(doctorMapper.selectById(2L)).thenReturn(doctor(2L, 3L, 1, new BigDecimal("50")));
+        when(scheduleMapper.selectByIdForUpdate(4L)).thenReturn(schedule(4L, 2L, LocalDate.now().plusDays(1)));
+        when(appointmentMapper.selectByUserAndIdemKey(7L, key)).thenReturn(null);
+        when(appointmentMapper.insert(any(Appointment.class)))
+                .thenThrow(new DuplicateKeyException("uk_order_no"));
+
+        Throwable thrown = catchThrowable(() -> service.create(form(1L, 2L, 4L, "发热"), key));
+
+        // 撞的是单号唯一键，与幂等键无关，必须原样抛出而不是伪装成重放
+        assertThat(thrown).isInstanceOf(DuplicateKeyException.class);
+    }
+
+    @Test
+    void createWithoutIdemKeyRethrowsDuplicateKey() {
+        when(doctorMapper.selectById(2L)).thenReturn(doctor(2L, 3L, 1, new BigDecimal("50")));
+        when(scheduleMapper.selectByIdForUpdate(4L)).thenReturn(schedule(4L, 2L, LocalDate.now().plusDays(1)));
+        when(appointmentMapper.insert(any(Appointment.class)))
+                .thenThrow(new DuplicateKeyException("uk_order_no"));
+
+        Throwable thrown = catchThrowable(() -> service.create(form(1L, 2L, 4L, "发热")));
+
+        assertThat(thrown).isInstanceOf(DuplicateKeyException.class);
+        verify(appointmentMapper, never()).selectByUserAndIdemKey(any(), any());
+    }
+
+    @Test
+    void createReplaysByKeyEvenWhenPayloadDiffers() {
+        UserContext.set(client(7L));
+        String key = "same-key-0001";
+        Appointment existing = pendingAppointment(77L, 7L);
+        when(appointmentMapper.selectByUserAndIdemKey(7L, key)).thenReturn(existing);
+
+        // 换宠物、换时段：仍以首次落库的原单为准，不报错也不新建
+        AppointmentVo vo = service.create(form(99L, 2L, 8L, "别的症状"), key);
+
+        assertThat(vo.getId()).isEqualTo(77L);
+        assertThat(vo.getPetId()).isEqualTo(1L);
+        assertThat(vo.getScheduleId()).isEqualTo(4L);
+        verify(doctorMapper, never()).selectById(any());
+        verify(scheduleMapper, never()).selectByIdForUpdate(any());
+        verify(appointmentMapper, never()).insert(any(Appointment.class));
+    }
+
     // ---------------------------------------------------------------- 支付
 
     @Test
@@ -413,6 +522,8 @@ class AppointmentServiceCoverageTest {
         AppointmentVo vo = service.pay(1L);
 
         assertThat(vo.getPayStatus()).isEqualTo(Appointment.PAY_PAID);
+        assertThat(vo.getPayTime()).isNotNull();
+        assertThat(vo.getPayType()).isEqualTo("MOCK");
         ArgumentCaptor<Wrapper<Appointment>> captor = ArgumentCaptor.forClass(Wrapper.class);
         verify(appointmentMapper).update(isNull(), captor.capture());
         assertThat(values(captor.getValue()))
