@@ -72,3 +72,7 @@ jobs:
 
       - name: 构建
         run: npm run build
+
+      - name: 校验 Dependabot 标题本地化脚本
+        working-directory: .
+        run: node --test .github/scripts/localize-dependabot.test.mjs

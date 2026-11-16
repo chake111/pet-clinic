@@ -76,7 +76,7 @@
 - 后端：JDK 17 + `mvn --batch-mode --no-transfer-progress verify`（单元测试 + 打包）
 - 前端：Node.js 22 + `npm ci`、`npm run lint`、`npm test`、`npm run build`
 
-工作流见 [`.github/workflows/ci.yml`](.github/workflows/ci.yml)，action 版本由 Dependabot 每周检查。
+工作流见 [`.github/workflows/ci.yml`](.github/workflows/ci.yml)，action 版本由 Dependabot 每周检查。Dependabot 的英文 PR 标题由 `Localize Dependabot PR` 工作流自动改成中文。
 
 ## 测试与质量
 
