@@ -73,15 +73,57 @@
 
 每次 push 到 `main` 或向 `main` 提交 PR，GitHub Actions 会执行：
 
-- 后端：JDK 17 + `mvn --batch-mode --no-transfer-progress verify`（单元测试 + 打包）
+- 后端：JDK 17 + `mvn --batch-mode --no-transfer-progress verify`（单元测试 + 集成测试 + 打包，见[测试与并发证据](#测试与并发证据)）
 - 前端：Node.js 22 + `npm ci`、`npm run lint`、`npm test`、`npm run build`
 - 部署：Docker Compose 构建并启动 MySQL、后端、nginx，校验健康接口与种子数据（仅 PR）
 
 工作流见 [`.github/workflows/ci.yml`](.github/workflows/ci.yml) 与 [`.github/workflows/docker.yml`](.github/workflows/docker.yml)，action 版本由 Dependabot 每周检查。Dependabot 的英文 PR 标题由 `Localize Dependabot PR` 工作流自动改成中文。
 
-## 测试与质量
+## 测试与并发证据
 
-CI 覆盖后端单元测试与前端 lint / test / build；隔离环境下的接口与浏览器验收脚本见 [tools/README.md](tools/README.md)，过程证据在 [docs/test-evidence/](docs/test-evidence/)。提交信息另由 commitlint 校验 Conventional Commits（仅 PR），冒号后的描述必须包含中文，规则见 [commitlint.config.cjs](commitlint.config.cjs)。
+### 单元测试
+
+```bash
+cd backend && mvn --batch-mode --no-transfer-progress test
+```
+
+现有 51 个用例，覆盖 JWT 密钥与令牌版本、账号状态校验、状态取值、排班周期校验、批量查询与 WebSocket 会话注册表。只跑 surefire，不需要 Docker。
+
+### 集成测试
+
+```bash
+cd backend && mvn --batch-mode --no-transfer-progress verify
+```
+
+需要 Docker Desktop 已启动（`docker info` 有输出）：Testcontainers 拉起临时 MySQL，覆盖下单、支付幂等、取消退号、超时释放、取消与清扫竞态，以及 100 线程抢 20 个号源。`*IT` 由 maven-failsafe-plugin 在 `verify` 阶段执行，`test` 阶段不会跑。
+
+CI 的 backend job 已经执行 `mvn verify`，接入 failsafe 后这些集成测试随流水线自动运行，不需要改 workflow。
+
+### 压测
+
+```bash
+bash tools/load/run-load.sh
+```
+
+脚本用独立 compose 项目 `petclinicload` 起一套隔离环境，不占用本机 3306 端口。两个场景：
+
+| 场景 | 号源 | 并发 |
+| --- | --- | --- |
+| race | 100 个 | 100 VU 同抢 |
+| oversell | 20 个 | 100 VU 同抢 |
+
+`run-load.sh` 串起 `fixture.sql` 造数据、`booking-race.js` 施压、`verify.sql` 核对库内终态。成功与拒绝按响应体 `code` 判定，不按 HTTP 状态。
+
+### 实跑结果
+
+- `mvn verify`（2026-11-16，本机）：51 个单元测试 + 7 个集成测试全部通过，`BUILD SUCCESS`，约 1 分钟；完整输出见 [`docs/test-evidence/20261116-it-load/mvn-verify.txt`](docs/test-evidence/20261116-it-load/mvn-verify.txt)。
+- k6 race / oversell 尚未跑，结果待补，证据文件见同目录。
+
+<!-- LOAD_RESULTS_START -->
+<!-- 由验证方在 k6 实跑后填入：race success/p95、oversell success/rejected、verify.sql verdict -->
+<!-- LOAD_RESULTS_END -->
+
+隔离环境下的接口与浏览器验收脚本见 [tools/README.md](tools/README.md)，过程证据在 [docs/test-evidence/](docs/test-evidence/)。提交信息另由 commitlint 校验 Conventional Commits（仅 PR），冒号后的描述必须包含中文，规则见 [commitlint.config.cjs](commitlint.config.cjs)。
 
 ## Docker 一键启动（演示环境）
 
