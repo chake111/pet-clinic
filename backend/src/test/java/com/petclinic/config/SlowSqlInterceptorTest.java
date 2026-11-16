@@ -5,7 +5,10 @@ import org.apache.ibatis.executor.Executor;
 import org.apache.ibatis.mapping.BoundSql;
 import org.apache.ibatis.mapping.MappedStatement;
 import org.apache.ibatis.mapping.SqlCommandType;
+import org.apache.ibatis.plugin.Interceptor;
+import org.apache.ibatis.plugin.Intercepts;
 import org.apache.ibatis.plugin.Invocation;
+import org.apache.ibatis.plugin.Signature;
 import org.apache.ibatis.session.Configuration;
 import org.apache.ibatis.session.ResultHandler;
 import org.apache.ibatis.session.RowBounds;
@@ -189,5 +192,44 @@ class SlowSqlInterceptorTest {
                 .contains("statement=" + STATEMENT_ID)
                 .doesNotContain("13800138000")
                 .doesNotContain("猫咪呕吐三天");
+    }
+
+    @Test
+    void mybatisPlusQueryRewriteLogsOnlyOnce(CapturedOutput output) throws Throwable {
+        // 模拟实际插件顺序：SlowSql 在内层，MybatisPlusInterceptor 把 4 参 query 改写成 6 参调用。
+        // 如果两层都被计时，这里会出现两条 WARN；只应有一条。
+        SlowSqlInterceptor interceptor = interceptor(200, fixedNanos(0L, 250_000_000L));
+        MappedStatement mappedStatement = mappedStatement();
+        when(mappedStatement.getSqlCommandType()).thenReturn(SqlCommandType.SELECT);
+
+        Executor raw = (Executor) Proxy.newProxyInstance(
+                Executor.class.getClassLoader(),
+                new Class<?>[]{Executor.class},
+                (proxy, method, args) -> {
+                    if ("query".equals(method.getName())) {
+                        return List.of();
+                    }
+                    throw new UnsupportedOperationException(method.getName());
+                });
+        Executor slowSql = (Executor) interceptor.plugin(raw);
+        Executor outer = (Executor) new QueryRewritingInterceptor().plugin(slowSql);
+
+        outer.query(mappedStatement, null, RowBounds.DEFAULT, null);
+
+        assertThat(output.getAll()).containsOnlyOnce("慢 SQL").contains("type=SELECT");
+    }
+
+    /** 复刻 MybatisPlusInterceptor 的行为：4 参 query 改为 6 参 query 调内层 Executor */
+    @Intercepts(@Signature(type = Executor.class, method = "query",
+            args = {MappedStatement.class, Object.class, RowBounds.class, ResultHandler.class}))
+    private static class QueryRewritingInterceptor implements Interceptor {
+        @Override
+        public Object intercept(Invocation invocation) throws Throwable {
+            Object[] args = invocation.getArgs();
+            Executor target = (Executor) invocation.getTarget();
+            BoundSql boundSql = new BoundSql(new Configuration(), "select 1", List.of(), null);
+            return target.query((MappedStatement) args[0], args[1], (RowBounds) args[2],
+                    (ResultHandler<?>) args[3], new CacheKey(), boundSql);
+        }
     }
 }

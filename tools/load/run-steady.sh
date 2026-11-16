@@ -36,6 +36,18 @@ ROOT_DIR="$(cd "${SCRIPT_DIR}/../.." && pwd)"
 LOAD_DIR="${ROOT_DIR}/tools/load"
 EVIDENCE_DIR="${EVIDENCE_DIR:-${ROOT_DIR}/docs/test-evidence/20261116-observability}"
 
+# k6 的 --summary-export 会把 setup() 返回的登录 token 写进 setup_data；
+# 证据要能公开提交，复制到证据目录后立刻删掉该字段
+strip_setup_data() {
+  node -e '
+const fs = require("fs");
+const file = process.argv[1];
+const data = JSON.parse(fs.readFileSync(file, "utf8"));
+delete data.setup_data;
+fs.writeFileSync(file, JSON.stringify(data, null, 2) + "\n");
+' "$1"
+}
+
 RATE="${RATE:-30}"
 DURATION="${DURATION:-3m}"
 PRE_VUS="${PRE_VUS:-30}"
@@ -96,7 +108,8 @@ echo "Grafana 面板: http://127.0.0.1:${PETCLINIC_GRAFANA_PORT:-3000} (压测�
 
 SUMMARY_NAME="summary-steady.json"
 # 先删旧汇总与旧日志: 本次 k6 若在写文件前失败, 不能把上一次的 summary 当成本次证据
-rm -f "${LOAD_DIR}/${SUMMARY_NAME}" "${EVIDENCE_DIR}/${SUMMARY_NAME}"
+rm -f "${LOAD_DIR}/${SUMMARY_NAME}" "${EVIDENCE_DIR}/${SUMMARY_NAME}" \
+  "${EVIDENCE_DIR}/steady.log" "${EVIDENCE_DIR}/prometheus-targets.json"
 # 参数写在日志首行, 与 k6 输出同文件, 保证证据和实际参数对得上
 echo "k6 steady: RATE=${RATE} DURATION=${DURATION} PRE_VUS=${PRE_VUS}" \
   | tee "${EVIDENCE_DIR}/steady.log"
@@ -115,6 +128,10 @@ k6_rc=${PIPESTATUS[0]}
 set -e
 if [[ -f "${LOAD_DIR}/${SUMMARY_NAME}" ]]; then
   cp -f "${LOAD_DIR}/${SUMMARY_NAME}" "${EVIDENCE_DIR}/${SUMMARY_NAME}"
+  if ! strip_setup_data "${EVIDENCE_DIR}/${SUMMARY_NAME}"; then
+    echo "错误: 无法从 ${SUMMARY_NAME} 删除 setup_data，证据可能带 token" >&2
+    exit 1
+  fi
   # k6 把汇总写在挂载目录里; 复制到证据目录后立刻删掉, 避免临时文件被误提交
   rm -f "${LOAD_DIR}/${SUMMARY_NAME}"
 fi

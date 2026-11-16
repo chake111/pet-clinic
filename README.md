@@ -88,7 +88,7 @@
 cd backend && mvn --batch-mode --no-transfer-progress test
 ```
 
-现有 153 个用例，覆盖 JWT 密钥与令牌版本、账号状态校验、状态取值、排班周期校验、批量查询、WebSocket 会话注册表，以及预约与排班两个核心服务的状态机分支；下单幂等键的预查、唯一键回读、非法键，清扫任务的租约跳过/释放与租约有效期校验，慢 SQL 拦截器的阈值语义、异常透传与 4/6 参 query 签名也在其中。只跑 surefire，不需要 Docker。
+现有 154 个用例，覆盖 JWT 密钥与令牌版本、账号状态校验、状态取值、排班周期校验、批量查询、WebSocket 会话注册表，以及预约与排班两个核心服务的状态机分支；下单幂等键的预查、唯一键回读、非法键，清扫任务的租约跳过/释放与租约有效期校验，慢 SQL 拦截器的阈值语义、异常透传、4/6 参 query 签名与 MyBatis-Plus 改写只记一次也在其中。只跑 surefire，不需要 Docker。
 
 ### 集成测试
 
@@ -125,7 +125,7 @@ bash tools/load/run-steady.sh
 
 ### 实跑结果
 
-- `mvn verify`（2026-11-16 轮次，本机）：153 个单元测试 + 21 个集成测试（8 个 IT 类）全部通过，`BUILD SUCCESS`，约 2 分钟；完整输出见 [`docs/test-evidence/20261116-observability/mvn-verify.txt`](docs/test-evidence/20261116-observability/mvn-verify.txt)。
+- `mvn verify`（2026-11-16 轮次，本机）：154 个单元测试 + 21 个集成测试（8 个 IT 类）全部通过，`BUILD SUCCESS`，约 2 分钟；完整输出见 [`docs/test-evidence/20261116-observability/mvn-verify.txt`](docs/test-evidence/20261116-observability/mvn-verify.txt)。
 - 覆盖率门禁：后端 `mvn verify` 中 JaCoCo 对 `AppointmentService` / `DoctorScheduleService` / `SlowSqlInterceptor` 行覆盖 ≥95%（当前 99.1% / 100% / 100%）；前端 `npm run test:coverage` 对 `tools/style-guard/index.mjs` 与 `src/utils/tableDensity.js` 行/分支/函数 ≥95%。
 - k6 race / oversell 已实跑（2026-11-16，Docker Desktop 本机）：race 100 个号全部成功，oversell 20 个号成功、80 个请求被正常拒绝，`verify.sql` 两条排班均 PASS。证据：[`race.log`](docs/test-evidence/20261116-it-load/race.log)、[`summary-race.json`](docs/test-evidence/20261116-it-load/summary-race.json)、[`oversell.log`](docs/test-evidence/20261116-it-load/oversell.log)、[`summary-oversell.json`](docs/test-evidence/20261116-it-load/summary-oversell.json)、[`verify.log`](docs/test-evidence/20261116-it-load/verify.log)、[`fixture.log`](docs/test-evidence/20261116-it-load/fixture.log)。
 

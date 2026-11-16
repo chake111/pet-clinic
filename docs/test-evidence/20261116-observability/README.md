@@ -8,7 +8,7 @@
 | 文件 | 内容 | 产生方式 |
 | --- | --- | --- |
 | `env.txt` | 系统、CPU/内存、JDK/Maven、Docker、镜像 tag/digest、k6 版本 | 实跑前记录 |
-| `mvn-verify.txt` | `mvn verify` 完整输出，153 单测 + 21 集成 | `mvn --batch-mode --no-transfer-progress verify` |
+| `mvn-verify.txt` | `mvn verify` 完整输出，154 单测 + 21 集成 | `mvn --batch-mode --no-transfer-progress verify` |
 | `health.txt` | readiness/liveness 200；停库后 readiness 503、liveness 200；启库恢复；nginx 对 metrics/prometheus 返回 404 | `curl` + `docker compose ps` |
 | `metrics-endpoint.json` | `/actuator/metrics/http.server.requests` 的 measurements 与 tags | 容器内 `curl` |
 | `prometheus-sample.txt` | `http_server_requests_seconds_*` 样本，含 `_bucket` 与 `application`/`uri` 标签 | 容器内 `curl /actuator/prometheus` |
@@ -59,4 +59,5 @@ COMMIT;
 - 慢 SQL 条数以 `slow-sql.log` 为准，阈值 200ms；行锁注入方式如上，引用时要带这个前提。
 - 环境以 `env.txt` 为准；换机器复跑要新建日期目录，不覆盖本轮。
 - 不引用其他轮次的数字，不对未实跑的配置写「预期值」。
+- `summary-*.json` 已删除 k6 的 `setup_data`；`run-load.sh` / `run-steady.sh` 在复制汇总到证据目录时会自动过滤该字段，避免登录 token 进仓库。
 - race/稳态压测都在独立 compose 项目里，演示栈 `pet-clinic` 的数据没有被压测写入。

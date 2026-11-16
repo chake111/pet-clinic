@@ -23,6 +23,18 @@ ROOT_DIR="$(cd "${SCRIPT_DIR}/../.." && pwd)"
 LOAD_DIR="${ROOT_DIR}/tools/load"
 EVIDENCE_DIR="${EVIDENCE_DIR:-${ROOT_DIR}/docs/test-evidence/20261116-it-load}"
 
+# k6 的 --summary-export 会把 setup() 返回的登录 token 写进 setup_data；
+# 证据要能公开提交，复制到证据目录后立刻删掉该字段
+strip_setup_data() {
+  node -e '
+const fs = require("fs");
+const file = process.argv[1];
+const data = JSON.parse(fs.readFileSync(file, "utf8"));
+delete data.setup_data;
+fs.writeFileSync(file, JSON.stringify(data, null, 2) + "\n");
+' "$1"
+}
+
 cd "$ROOT_DIR"
 mkdir -p "$EVIDENCE_DIR"
 
@@ -87,6 +99,10 @@ run_k6() {
   set -e
   if [[ -f "${LOAD_DIR}/${summary}" ]]; then
     cp -f "${LOAD_DIR}/${summary}" "${EVIDENCE_DIR}/${summary}"
+    if ! strip_setup_data "${EVIDENCE_DIR}/${summary}"; then
+      echo "错误: 无法从 ${summary} 删除 setup_data，证据可能带 token" >&2
+      return 1
+    fi
     # k6 把汇总写在挂载目录里；复制到证据目录后立刻删掉，避免临时文件被误提交
     rm -f "${LOAD_DIR}/${summary}"
   fi
