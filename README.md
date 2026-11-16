@@ -112,7 +112,7 @@ bash tools/load/run-load.sh
 | race | 100 个 | 100 VU 同抢 |
 | oversell | 20 个 | 100 VU 同抢 |
 
-`run-load.sh` 串起 `fixture.sql` 造数据、`booking-race.js` 施压、`verify.sql` 核对库内终态。成功与拒绝按响应体 `code` 判定（拒绝还要求 `msg` 含「号源已约满」），不按 HTTP 状态；鉴权失败和业务失败在 HTTP 层同样返回 200。
+`run-load.sh` 串起 `fixture.sql` 造数据、`booking-race.js` 施压、`verify.sql` 核对库内终态。成功与拒绝按响应体 `code` 判定（拒绝还要求 `msg` 含「号源已约满」），不按 HTTP 状态；鉴权失败和业务失败在 HTTP 层同样返回 200。脚本为隔离栈提供测试专用 MySQL/JWT 默认值，干净 checkout 可直接运行；需要改口令时用同名环境变量覆盖。
 
 ### 实跑结果
 

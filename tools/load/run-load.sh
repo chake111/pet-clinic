@@ -26,6 +26,12 @@ EVIDENCE_DIR="${ROOT_DIR}/docs/test-evidence/20261116-it-load"
 cd "$ROOT_DIR"
 mkdir -p "$EVIDENCE_DIR"
 
+# 干净 checkout 没有根 .env 时，compose.yaml 的 :? 必填变量会让 preflight 直接失败。
+# 压测栈是隔离的，这里提供测试专用默认值；外部已设置同名变量时优先使用外部值。
+export PETCLINIC_MYSQL_ROOT_PASSWORD="${PETCLINIC_MYSQL_ROOT_PASSWORD:-k6-root-password}"
+export PETCLINIC_DB_PASSWORD="${PETCLINIC_DB_PASSWORD:-k6-db-password}"
+export PETCLINIC_JWT_SECRET="${PETCLINIC_JWT_SECRET:-k6-load-test-jwt-secret-0123456789abcdef}"
+
 # Docker Desktop + Git Bash: -v 的宿主路径用 Windows 形式, 容器内路径禁止被 MSYS 改写
 if command -v cygpath >/dev/null 2>&1; then
   LOAD_DIR_DOCKER="$(cygpath -m "${LOAD_DIR}")"
