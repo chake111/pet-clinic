@@ -18,6 +18,8 @@ public class AppProperties {
     private Upload upload = new Upload();
     @Valid
     private Scheduler scheduler = new Scheduler();
+    @Valid
+    private Observability observability = new Observability();
 
     /** 未支付订单自动释放号源的分钟数 */
     private int payTimeoutMinutes = 30;
@@ -59,5 +61,12 @@ public class AppProperties {
          */
         @Min(value = 1, message = "定时任务租约有效期必须大于 0 秒")
         private long leaseSeconds = 300;
+    }
+
+    @Data
+    public static class Observability {
+        /** 耗时达到或超过该毫秒数的 MyBatis 语句打 WARN；0 表示关闭 */
+        @Min(value = 0, message = "慢 SQL 阈值不能为负数")
+        private long slowSqlThresholdMs = 200;
     }
 }

@@ -41,6 +41,16 @@ jobs:
           curl -fsS -o /dev/null http://127.0.0.1:8088/api/uploads/seed/doctor-01.jpg
           curl -fsS -o /dev/null http://127.0.0.1:8088/healthz
 
+      - name: 校验就绪、指标端点与 nginx 拦截
+        run: |
+          # 先打一次业务接口，确保 http.server.requests 有样本
+          curl -fsS -o /dev/null http://127.0.0.1:8088/api/client/catalog/home
+          curl -fsS http://127.0.0.1:8088/api/actuator/health/readiness
+          docker compose exec -T backend sh -c \
+            "curl -fsS http://127.0.0.1:8081/api/actuator/prometheus | grep -q '^http_server_requests_seconds'"
+          test "$(curl -s -o /dev/null -w '%{http_code}' http://127.0.0.1:8088/api/actuator/metrics)" = "404"
+          test "$(curl -s -o /dev/null -w '%{http_code}' http://127.0.0.1:8088/api/actuator/prometheus)" = "404"
+
       - name: 失败时输出日志
         if: failure()
         run: docker compose logs --tail=200

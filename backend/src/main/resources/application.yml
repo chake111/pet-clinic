@@ -57,10 +57,27 @@ management:
   endpoints:
     web:
       exposure:
-        include: health
+        # 只多放通指标端点；nginx 层仍会挡住 metrics/prometheus，不对外暴露
+        include: health,metrics,prometheus
   endpoint:
     health:
       show-details: never
+      # Docker Compose 不满足 Kubernetes 环境的自动开启条件，必须显式打开 liveness/readiness
+      probes:
+        enabled: true
+      group:
+        readiness:
+          # readiness 显式带上 db：否则默认分组只看 readinessState，数据库挂了也会报 UP
+          include: readinessState,db
+  metrics:
+    tags:
+      application: ${spring.application.name}
+    distribution:
+      # 只开 histogram：Prometheus 用 _bucket + histogram_quantile 算 p95。
+      # Boot 3.5 的 /actuator/metrics 只返回 count/total/max，percentiles 配置不会显示在那里，
+      # 分位数口径以 Prometheus 和 k6 summary 为准，不重复计算。
+      percentiles-histogram:
+        http.server.requests: true
 
 petclinic:
   # 必填，没有默认值：HMAC-SHA 密钥（算法随长度自动选：32B→HS256、48B→HS384），长度 >= 32 字节。
@@ -81,6 +98,9 @@ petclinic:
   scheduler:
     # 定时清扫任务的多实例租约（秒）。远大于一轮耗时；实例崩溃后最多等这么久由其他实例接管，必须大于 0
     lease-seconds: 300
+  observability:
+    # 耗时达到或超过该毫秒数的 MyBatis 语句打 WARN；0 表示关闭。计时包住整个 Executor 调用，含行锁等待和结果映射
+    slow-sql-threshold-ms: 200
 
 logging:
   level:

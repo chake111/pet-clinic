@@ -42,6 +42,11 @@
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-actuator</artifactId>
         </dependency>
+        <!-- Prometheus 指标出口，版本由 Spring Boot BOM 管理，不写版本号 -->
+        <dependency>
+            <groupId>io.micrometer</groupId>
+            <artifactId>micrometer-registry-prometheus</artifactId>
+        </dependency>
 
         <dependency>
             <groupId>com.baomidou</groupId>
@@ -184,6 +189,7 @@
                             <includes>
                                 <include>com/petclinic/service/AppointmentService.class</include>
                                 <include>com/petclinic/service/DoctorScheduleService.class</include>
+                                <include>com/petclinic/config/SlowSqlInterceptor.class</include>
                             </includes>
                         </configuration>
                     </execution>

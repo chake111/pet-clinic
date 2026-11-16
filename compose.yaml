@@ -54,7 +54,7 @@ services:
       db:
         condition: service_healthy
     healthcheck:
-      test: ["CMD", "curl", "-fsS", "http://127.0.0.1:8081/api/actuator/health"]
+      test: ["CMD", "curl", "-fsS", "http://127.0.0.1:8081/api/actuator/health/readiness"]
       interval: 10s
       timeout: 5s
       retries: 12
@@ -80,6 +80,38 @@ services:
       timeout: 5s
       retries: 6
       start_period: 10s
+    security_opt:
+      - no-new-privileges:true
+    logging: *default-logging
+
+  prometheus:
+    image: prom/prometheus:v2.55.1
+    profiles: ["observability"]
+    command:
+      - --config.file=/etc/prometheus/prometheus.yml
+    volumes:
+      - ./deploy/observability/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+    ports:
+      - "127.0.0.1:${PETCLINIC_PROM_PORT:-9090}:9090"
+    depends_on:
+      - backend
+    security_opt:
+      - no-new-privileges:true
+    logging: *default-logging
+
+  grafana:
+    image: grafana/grafana:11.3.1
+    profiles: ["observability"]
+    environment:
+      GF_SECURITY_ADMIN_PASSWORD: ${PETCLINIC_GRAFANA_PASSWORD:-admin}
+      GF_USERS_ALLOW_SIGN_UP: "false"
+    volumes:
+      - ./deploy/observability/grafana/provisioning:/etc/grafana/provisioning:ro
+      - ./deploy/observability/grafana/dashboards:/var/lib/grafana/dashboards:ro
+    ports:
+      - "127.0.0.1:${PETCLINIC_GRAFANA_PORT:-3000}:3000"
+    depends_on:
+      - prometheus
     security_opt:
       - no-new-privileges:true
     logging: *default-logging
