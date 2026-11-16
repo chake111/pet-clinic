@@ -26,6 +26,15 @@
 | `gen_data_model.py` | 从 `sql/01_schema.sql` 生成 `docs/数据模型.md` |
 | `prepare_business_demo.py` | 准备一份可重复的浏览器演示数据 |
 
+## 压测脚本
+
+| 脚本 | 用途 |
+| --- | --- |
+| `load/run-load.sh` | 100 VU race/oversell 并发正确性压测，独立 compose 项目 `petclinicload`；`EVIDENCE_DIR` 可覆盖 |
+| `load/run-steady.sh` | 默认 30 req/s × 3 分钟稳态读混合压测，带 Prometheus/Grafana（`observability` profile），独立项目 `petclinicperf` |
+
+两个脚本都会为隔离栈提供测试专用 MySQL/JWT 默认值，并处理 Windows Git Bash 的路径转换；`KEEP=1` 保留栈供检查或截图。说明见 [`docs/test-evidence/20261116-observability/README.md`](../docs/test-evidence/20261116-observability/README.md)。
+
 ## 注意
 
 `qa_env.py` 会建库、建账号并导入结构；`01_schema.sql` 自带 `DROP DATABASE pet_clinic`，脚本会先改写成隔离库名并校验，避免误连本机业务库。执行前请确认 `--admin-defaults-file` 指向的是测试实例。
