@@ -1,0 +1,39 @@
+# 构建产物与依赖
+target/
+dist/
+node_modules/
+output/
+
+# 运行时数据：上传的图片、脚本临时目录与日志（seed 演示图例外，随仓库跟踪）
+backend/uploads/*
+!backend/uploads/seed/
+# 后端 upload.dir 默认 ./uploads，按启动目录落到仓库根时同理（锚定根目录，不影响 backend/uploads/seed）
+/uploads/
+.tmp/
+tmp/
+*.log
+!docs/test-evidence/**/*.log
+
+# Python 脚本缓存
+__pycache__/
+*.pyc
+
+# 编辑器与操作系统
+.idea/
+*.iml
+.vscode/
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# 本地/生产环境配置文件（可能含真实密码，用 application-example.yml 作模板）
+backend/src/main/resources/application-local.yml
+backend/src/main/resources/application-prod.yml
+!backend/src/main/resources/application-example.yml
+
+# 本地工具与会话产物
+.zcode/
+.playwright-cli/
+/shots/
+.oil-ui/
+.workbuddy/

@@ -1,0 +1,8 @@
+* text=auto
+
+# CI 与脚本统一 LF，避免 Windows 工作区把 CRLF 带进工作流
+*.yml text eol=lf
+*.yaml text eol=lf
+*.mjs text eol=lf
+*.cjs text eol=lf
+*.sh text eol=lf

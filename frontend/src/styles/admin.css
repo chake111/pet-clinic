@@ -1,0 +1,78 @@
+/* 后台专用表面与控件；body 作用域同时覆盖传送到 body 的弹窗。 */
+body.admin-mode { background: #f6f7f9; }
+.admin-shell .admin-page-heading { display: flex; align-items: baseline; gap: 14px; margin-bottom: 22px; }
+.admin-shell .admin-page-heading h1 { margin: 0; font-size: 24px; line-height: 1.4; font-weight: 650; letter-spacing: -.5px; }
+.admin-shell .admin-page-heading > span { color: var(--color-muted); font-size: 13px; }
+.admin-shell .pc-card { border-color: var(--color-hairline-soft); }
+
+/* 页面骨架：列表页原本各自复制一份 .page / .filter / .pager（12 个 gap:12、10 个 filter、
+   10 个 pager），改一处就要改十几次，且容易越改越散。
+   这里用 :where() 把权重压到 (0,1,0)——页面 scoped 规则带 [data-v] 是 (0,2,0)，
+   确需差异的（Dashboard 的 14px、RecordDetail 的 20px）只写自己的 gap 就能覆盖，不依赖加载顺序。 */
+.admin-shell :where(.page) { display: flex; flex-direction: column; gap: 12px; min-width: 0; }
+.admin-shell :where(.filter) { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+.admin-shell :where(.pager) { justify-content: flex-end; margin-top: 10px; }
+/* 内边距单独提到 (0,2,0)：筛选条同时带 .pc-card，若只写 :where(.filter)，12px 会与
+   .pc-card 的 16px 同权重、靠加载顺序取胜——那正是这轮要拆掉的那种偶然。 */
+.admin-shell .pc-card.filter { padding: 12px; }
+
+/* 下面两条属性与公共骨架不同、权重更高，是真正在生效的，保留。 */
+.admin-shell .filter .el-date-editor { flex-grow: 0; max-width: 100%; }
+.admin-shell .el-table { --el-table-header-bg-color: #f8f9fb; --el-table-header-text-color: #555; --el-table-border-color: #edf0f2; --el-table-row-hover-bg-color: #fafafb; font-variant-numeric: tabular-nums; }
+.admin-shell .el-table .cell { padding: 0 12px; line-height: 1.6; }
+.admin-shell .el-table td.el-table__cell { padding: 13px 0; }
+.admin-shell .el-table th.el-table__cell { padding: 12px 0; font-weight: 500; }
+/* 只给 padding：margin-top 由公共骨架的 .pager 负责（10px）。 */
+.admin-shell .pager { padding-top: 16px; }
+.admin-shell .admin-list-summary { display: flex; gap: 12px; align-items: baseline; margin-bottom: 16px; }
+.admin-shell .admin-list-summary b { font-size: 15px; font-weight: 600; }
+.admin-shell .admin-list-summary span { color: var(--color-muted); font-size: 13px; }
+body.admin-mode .el-input__inner, body.admin-mode .el-textarea__inner { font-size: 14px; }
+body.admin-mode .el-dialog { max-width: calc(100vw - 32px); padding: 24px; }
+body.admin-mode .el-dialog__header { padding-bottom: 20px; }
+body.admin-mode .el-dialog__footer { padding-top: 20px; }
+
+/* 实心主按钮：后台不挂 client-mode，这里补与 main.css 同一组动作色。
+   覆盖后台全部实心 primary，含登录页与 Workbench 的结束就诊弹窗——该弹窗渲染在
+   .page 内、位于 .record-sheet 之外，页面级覆写够不到它；后台按钮取色由
+   frontend/tools/style-guard 与视觉走查覆盖。AppointmentDetail 与 Workbench 的 3 个
+   按钮所在子树另有页面级 :deep（0,3,0），在本条 (0,6,1) 之下，已不参与取色。 */
+body.admin-mode .el-button--primary:not(.is-plain):not(.is-link):not(.is-text):not(.is-disabled) {
+  --el-button-bg-color: var(--color-action);
+  --el-button-border-color: var(--color-action);
+  --el-button-hover-bg-color: var(--color-action-hover);
+  --el-button-hover-border-color: var(--color-action-hover);
+  --el-button-active-bg-color: var(--color-action-active);
+  --el-button-active-border-color: var(--color-action-active);
+}
+
+/* 禁用态转中性：浅粉底白字实测 1.98:1；与 main.css 同值。 */
+body.admin-mode .el-button--primary.is-disabled,
+body.admin-mode .el-button--primary.is-disabled:hover {
+  --el-button-disabled-bg-color: var(--color-surface-strong);
+  --el-button-disabled-border-color: var(--color-surface-strong);
+  --el-button-disabled-text-color: var(--color-muted);
+  background-color: var(--color-surface-strong);
+  border-color: var(--color-surface-strong);
+  color: var(--color-muted);
+}
+
+body.admin-mode :focus-visible { outline: 2px solid var(--color-ink); outline-offset: 3px; }
+/* 输入控件由 Element 外框表示焦点，内部编辑区域不再叠加描边；含 body 下的弹窗。 */
+body.admin-mode :is(.el-input__inner, .el-textarea__inner, .el-select__input, .el-range-input):focus-visible { outline: none; }
+@media (max-width: 700px) {
+  .admin-shell .admin-page-heading { margin-bottom: 16px; }
+  .admin-shell .admin-page-heading h1 { font-size: 21px; }
+  .admin-shell .filter > .sp { display: none; }
+  .admin-shell .pc-card { min-width: 0; }
+  body.admin-mode .el-dialog { padding: 16px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  body.admin-mode *, body.admin-mode *::before, body.admin-mode *::after { animation-duration: .01ms !important; transition-duration: .01ms !important; }
+}
+@media print {
+  body.admin-mode { background: white; }
+  body.admin-mode .admin-shell .side, body.admin-mode .admin-shell .top, body.admin-mode .admin-shell .admin-page-heading { display: none; }
+  body.admin-mode .admin-shell, body.admin-mode .admin-shell .main { display: block; }
+  body.admin-mode .admin-shell .body { padding: 0; overflow: visible; }
+}

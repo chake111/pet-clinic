@@ -1,0 +1,75 @@
+package com.petclinic.controller.client;
+
+import com.petclinic.common.PageResult;
+import com.petclinic.common.Result;
+import com.petclinic.dto.ConsultForm;
+import com.petclinic.dto.ConsultQuery;
+import com.petclinic.dto.ConsultMessageQuery;
+import com.petclinic.entity.ConsultMessage;
+import com.petclinic.service.ConsultService;
+import com.petclinic.vo.ConsultSessionVo;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
+import lombok.RequiredArgsConstructor;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
+
+import java.util.List;
+
+/**
+ * 用户端图文问诊的 HTTP 半边。
+ *
+ * 图文问诊免费、不占号源、不建订单：从医生主页直接发起（见 POST /sessions）。
+ * 收发消息走 WebSocket（/api/ws/consult），这里只提供 WebSocket 不方便做的事：
+ * 会话列表、未读红点、以及翻历史消息。历史一律以库为准，
+ * 所以即使掉线错过了推送，重新进房也能补齐。
+ */
+@Tag(name = "用户端-图文问诊")
+@RestController
+@RequestMapping("/client/consult")
+@RequiredArgsConstructor
+public class ConsultController {
+
+    private final ConsultService consultService;
+
+    @Operation(summary = "发起图文问诊（免费，选宠物 + 描述症状直建会话）")
+    @PostMapping("/sessions")
+    public Result<ConsultSessionVo> create(@RequestBody @Valid ConsultForm form) {
+        return Result.ok("已发起，等待医生接诊", consultService.create(form));
+    }
+
+    @Operation(summary = "我的问诊会话（按最后一条消息时间倒序）")
+    @GetMapping("/sessions")
+    public Result<PageResult<ConsultSessionVo>> sessions(ConsultQuery query) {
+        return Result.ok(consultService.pageMine(query));
+    }
+
+    @GetMapping("/sessions/{id}")
+    public Result<ConsultSessionVo> detail(@PathVariable Long id) {
+        return Result.ok(consultService.detailMine(id));
+    }
+
+    @Operation(summary = "会话历史消息，新→旧分页")
+    @GetMapping("/{id}/messages")
+    public Result<PageResult<ConsultMessage>> messages(@PathVariable Long id, @Valid ConsultMessageQuery query) {
+        return Result.ok(consultService.history(id, query));
+    }
+
+    @Operation(summary = "关闭会话（仅限还没被医生接诊的）")
+    @PostMapping("/{id}/close")
+    public Result<Void> close(@PathVariable Long id) {
+        consultService.close(id, null);
+        return Result.ok("已关闭", null);
+    }
+
+    @Operation(summary = "有未读的会话数，用于导航栏红点")
+    @GetMapping("/unread")
+    public Result<Long> unread() {
+        return Result.ok(consultService.unreadTotal());
+    }
+}

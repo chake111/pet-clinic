@@ -1,0 +1,80 @@
+server:
+  # 本机 8080 已被其他 Java 服务占用，固定用 8081；前端 vite.config.js 的 proxy 需同步
+  port: 8081
+  # 后端自带 /api 前缀，Vite 代理只做转发、不做 rewrite，
+  # 保证浏览器 Network 里的路径和 curl / Swagger UI 看到的一致
+  servlet:
+    context-path: /api
+  tomcat:
+    uri-encoding: UTF-8
+
+spring:
+  application:
+    name: pet-clinic-server
+  datasource:
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    url: jdbc:mysql://127.0.0.1:3306/pet_clinic?useUnicode=true&characterEncoding=utf8&serverTimezone=Asia/Shanghai&useSSL=false&allowPublicKeyRetrieval=true&rewriteBatchedStatements=true
+    username: ${DB_USERNAME:root}
+    password: ${DB_PASSWORD:123456}  # 开发默认值，生产必须通过环境变量覆盖
+    hikari:
+      minimum-idle: 5
+      maximum-pool-size: 20
+      connection-timeout: 10000
+  jackson:
+    # LocalDateTime / LocalDate / LocalTime 的格式在 config/JacksonConfig.java 里统一配置
+    time-zone: Asia/Shanghai
+    default-property-inclusion: non_null
+  servlet:
+    multipart:
+      max-file-size: 10MB
+      max-request-size: 30MB
+  web:
+    resources:
+      add-mappings: true
+
+mybatis-plus:
+  configuration:
+    map-underscore-to-camel-case: true
+    # 联调需要看 SQL 时取消下一行注释
+    #log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
+  global-config:
+    banner: false
+    db-config:
+      id-type: auto
+      logic-delete-field: deleted
+      logic-delete-value: 1
+      logic-not-delete-value: 0
+
+springdoc:
+  swagger-ui:
+    path: /swagger-ui.html
+    tags-sorter: alpha
+    operations-sorter: alpha
+  api-docs:
+    path: /v3/api-docs
+
+petclinic:
+  # 必填，没有默认值：HMAC-SHA 密钥（算法随长度自动选：32B→HS256、48B→HS384），长度 >= 32 字节。
+  # 启动时会拒绝空值、过短值和历史示例值；本地开发也要 export JWT_SECRET。
+  jwt:
+    secret: ${JWT_SECRET:}
+    expire-seconds: 604800
+    header: Authorization
+    prefix: "Bearer "
+  upload:
+    dir: ./uploads
+    # 库里存的是完整可访问路径：/api/uploads/...，前端 <img :src="url"> 直接用，不再拼 baseURL。
+    # 注册静态映射时要剥掉 context-path 那一段，见 WebMvcConfig#resourcePattern
+    url-prefix: /api/uploads
+    max-size-bytes: 5242880
+  # 未支付订单超过该分钟数自动取消并回滚号源
+  pay-timeout-minutes: 30
+
+logging:
+  level:
+    root: info
+    com.petclinic: info
+  pattern:
+    # 追踪号紧跟在级别后面（TraceIdFilter 写入 MDC）：用户报障给的号能直接 grep 到那一行
+    # 与紧随其后的堆栈；定时任务、WebSocket 回调没有请求上下文，这里显示为空
+    level: "%5p [%X{traceId:-}]"

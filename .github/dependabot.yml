@@ -1,0 +1,12 @@
+version: 2
+
+updates:
+  # CI 里的 action 固定到 commit SHA，靠 Dependabot 每周推进版本。
+  - package-ecosystem: github-actions
+    directory: "/"
+    schedule:
+      interval: weekly
+    open-pull-requests-limit: 5
+    groups:
+      github-actions:
+        patterns: ["*"]

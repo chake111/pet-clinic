@@ -1,0 +1,90 @@
+# =====================================================
+# Pet Clinic 配置模板（生产/部署参考；本文件不会被 Spring Boot 直接加载）
+# =====================================================
+# 两种用法，任选其一：
+# 1. 环境变量（推荐；注意同名时命令行属性优先级更高，--petclinic.jwt.secret=xxx 会盖掉环境变量）：
+#      export DB_USERNAME=xxx
+#      export DB_PASSWORD=xxx
+#      export JWT_SECRET=your_very_long_secret_at_least_32_bytes
+#      java -jar pet-clinic-server.jar
+# 2. 复制本文件为 application-prod.yml（该文件名已被 .gitignore 忽略），
+#    填好后用 profile 启动：
+#      java -jar pet-clinic-server.jar --spring.profiles.active=prod
+#
+# 说明：
+# - 配置不生效时按优先级排查：命令行属性 > 环境变量 > config/ 外部文件 > jar 内默认值。
+#   顺序记反会往错误方向找（比如盯着环境变量，其实被启动参数盖掉了）。
+# - 下面两个敏感项刻意写成"无默认值"（${DB_PASSWORD} / ${JWT_SECRET}）：
+#   照本模板配生产时，少注入一个就直接启动失败，避免"忘了改却以为改了"。
+# - 开发用的 application.yml 里数据库口令仍带默认值（${DB_PASSWORD:123456}），
+#   但 jwt.secret 同样没有默认值：本地 mvn spring-boot:run 也要先 export JWT_SECRET，
+#   启动阶段会拒绝空值、不足 32 字节以及历史示例密钥。
+#   种子演示账号口令见 README 演示账号表。
+# =====================================================
+
+server:
+  port: 8081
+  servlet:
+    context-path: /api
+  tomcat:
+    uri-encoding: UTF-8
+
+spring:
+  application:
+    name: pet-clinic-server
+  datasource:
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    url: jdbc:mysql://127.0.0.1:3306/pet_clinic?useUnicode=true&characterEncoding=utf8&serverTimezone=Asia/Shanghai&useSSL=false&allowPublicKeyRetrieval=true&rewriteBatchedStatements=true
+    username: ${DB_USERNAME}
+    password: ${DB_PASSWORD}          # ← 从环境变量注入；无默认值，未注入则启动失败
+    hikari:
+      minimum-idle: 5
+      maximum-pool-size: 20
+      connection-timeout: 10000
+  jackson:
+    time-zone: Asia/Shanghai
+    default-property-inclusion: non_null
+  servlet:
+    multipart:
+      max-file-size: 10MB
+      max-request-size: 30MB
+  web:
+    resources:
+      add-mappings: true
+
+mybatis-plus:
+  configuration:
+    map-underscore-to-camel-case: true
+    log-impl: org.apache.ibatis.logging.stdout.StdOutImpl  # 联调期用，生产改回空
+  global-config:
+    banner: false
+    db-config:
+      id-type: auto
+      logic-delete-field: deleted
+      logic-delete-value: 1
+      logic-not-delete-value: 0
+
+springdoc:
+  swagger-ui:
+    path: /swagger-ui.html
+    tags-sorter: alpha
+    operations-sorter: alpha
+  api-docs:
+    path: /v3/api-docs
+
+petclinic:
+  jwt:
+    secret: ${JWT_SECRET}             # ← 从环境变量注入；无默认值；HMAC-SHA 密钥，长度 >= 32 字节（算法随长度自动选）
+    expire-seconds: 604800
+    header: Authorization
+    prefix: "Bearer "
+  upload:
+    dir: ./uploads
+    url-prefix: /api/uploads
+    max-size-bytes: 5242880
+  pay-timeout-minutes: 30
+
+logging:
+  level:
+    root: info
+    com.petclinic: debug

@@ -1,0 +1,3 @@
+# Keep text evidence hashes stable across platforms.
+* text eol=lf
+*.png -text
