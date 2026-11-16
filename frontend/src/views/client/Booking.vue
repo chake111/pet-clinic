@@ -107,7 +107,12 @@ watch(() => form.scheduleId, (value) => { if (value) errors.scheduleId = '' })
 watch(() => form.symptom, (value) => { if (value.trim()) errors.symptom = '' })
 // 换宠物或时段是新的一次下单意图，键必须换新；网络失败后原表单重试则沿用旧键，
 // 这样服务端才能把重试认成同一单而不是重复占号。
-watch(() => [form.petId, form.scheduleId], () => { idemKey.value = newIdempotencyKey() })
+// 请求在途时不换键：期间改表单不影响已经发出的那次请求；否则超时重试会换新键，
+// 把可能已提交的原单又下一遍。
+watch(() => [form.petId, form.scheduleId], () => {
+  if (busy.value) return
+  idemKey.value = newIdempotencyKey()
+})
 watch([selectedDate, scheduleSection], async () => {
   await nextTick()
   const strip = scheduleSection.value?.querySelector('.date-strip')

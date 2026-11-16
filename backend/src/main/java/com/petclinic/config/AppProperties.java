@@ -1,17 +1,22 @@
 package com.petclinic.config;
 
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.Min;
 import lombok.Data;
 import org.springframework.boot.context.properties.ConfigurationProperties;
+import org.springframework.validation.annotation.Validated;
 
 /**
  * 应用自定义配置，对应 application.yml 的 petclinic.* 节点。
  */
 @Data
+@Validated
 @ConfigurationProperties(prefix = "petclinic")
 public class AppProperties {
 
     private Jwt jwt = new Jwt();
     private Upload upload = new Upload();
+    @Valid
     private Scheduler scheduler = new Scheduler();
 
     /** 未支付订单自动释放号源的分钟数 */
@@ -50,7 +55,9 @@ public class AppProperties {
         /**
          * 定时清扫任务的多实例租约有效期（秒）。
          * 远大于正常一轮耗时；持有者进程挂掉后最多等这么久由其他实例接管。
+         * 必须大于 0：配置成 0 会让租约立即到期，多实例互斥静默失效。
          */
+        @Min(value = 1, message = "定时任务租约有效期必须大于 0 秒")
         private long leaseSeconds = 300;
     }
 }
