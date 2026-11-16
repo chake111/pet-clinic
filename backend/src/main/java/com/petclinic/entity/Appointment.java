@@ -37,6 +37,14 @@ public class Appointment {
     private Long id;
 
     private String orderNo;
+
+    /**
+     * 下单幂等键。只在按 (user_id, idem_key) 回读原单时取用；
+     * select = false 让常规查询不带这一列，也不进 VO（内部重试标识，对前端无意义）。
+     */
+    @TableField(select = false)
+    private String idemKey;
+
     private Long userId;
     private Long petId;
     private Long doctorId;

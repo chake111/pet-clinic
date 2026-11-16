@@ -15,6 +15,7 @@
 - 找医生：按科室、关键词筛选，按综合 / 评分 / 接诊量排序
 - 医生详情：擅长领域、简介、未来 7~30 天号源、患者评价（含医生回复）
 - 挂号下单：选宠物、选时段、填病情描述、最多 6 张症状图
+- 下单幂等：客户端带 `Idempotency-Key`，同键重放返回原单；`(user_id, idem_key)` 唯一索引兜底，重试不会重复占号
 - 模拟支付：点一下即支付；30 分钟未支付由定时任务取消并退回号源
 - 图文问诊：从医生主页直接发起，选宠物 + 描述症状即建会话——免费、不限次、不占号源、不走支付
 - 问诊会话：WebSocket 实时消息，文字 + 图片，已送达 / 已读回执，医生在线状态；患部照片点开看大图，可左右翻阅整场会话的历史图
@@ -64,7 +65,7 @@
 | 前端 | Vue 3.5 Vite 5.4 Element Plus 2.8+ Pinia 2 Vue Router 4 Axios 1.7 ECharts 5.5 |
 | 后端 | Spring Boot 3.5.16 JDK 17 MyBatis-Plus 3.5.17 原生 WebSocket jjwt 0.12.6 |
 | 接口文档 | springdoc-openapi 2.8 + Swagger UI（OpenAPI 3） |
-| 数据 | MySQL 8（库名 `pet_clinic`，12 张表，逻辑外键，逻辑删除） |
+| 数据 | MySQL 8（库名 `pet_clinic`，13 张表，逻辑外键，逻辑删除） |
 | 认证 | JWT（HMAC-SHA，jjwt 按密钥长度自动选 HS256/384/512；7 天）+ `HandlerInterceptor` 路径前缀鉴权 + `@RequireRole`；密码 BCrypt |
 
 号源防超卖靠一条带条件的 UPDATE 实现。
@@ -87,7 +88,7 @@
 cd backend && mvn --batch-mode --no-transfer-progress test
 ```
 
-现有 130 个用例，覆盖 JWT 密钥与令牌版本、账号状态校验、状态取值、排班周期校验、批量查询、WebSocket 会话注册表，以及预约与排班两个核心服务的状态机分支。只跑 surefire，不需要 Docker。
+现有 145 个用例，覆盖 JWT 密钥与令牌版本、账号状态校验、状态取值、排班周期校验、批量查询、WebSocket 会话注册表，以及预约与排班两个核心服务的状态机分支；下单幂等键的预查、唯一键回读、非法键，清扫任务的租约跳过/释放与租约有效期校验也在其中。只跑 surefire，不需要 Docker。
 
 ### 集成测试
 
@@ -95,7 +96,7 @@ cd backend && mvn --batch-mode --no-transfer-progress test
 cd backend && mvn --batch-mode --no-transfer-progress verify
 ```
 
-需要 Docker Desktop 已启动（`docker info` 有输出）：Testcontainers 拉起临时 MySQL，覆盖下单、支付幂等、取消退号、超时释放、取消与清扫竞态，以及 100 线程抢 20 个号源。`*IT` 由 maven-failsafe-plugin 在 `verify` 阶段执行，`test` 阶段不会跑。
+需要 Docker Desktop 已启动（`docker info` 有输出）：Testcontainers 拉起临时 MySQL，覆盖下单、支付幂等、取消退号、超时释放、取消与清扫竞态、下单幂等键（重放/20 并发同键/跨用户/换时段/取消后重放）、清扫任务 DB 租约，以及 100 线程抢 20 个号源。`*IT` 由 maven-failsafe-plugin 在 `verify` 阶段执行，`test` 阶段不会跑。
 
 CI 的 backend job 已经执行 `mvn verify`，接入 failsafe 后这些集成测试随流水线自动运行，不需要改 workflow。
 
@@ -117,7 +118,7 @@ bash tools/load/run-load.sh
 ### 实跑结果
 
 - `mvn verify`（2026-11-16，本机）：130 个单元测试 + 7 个集成测试全部通过，`BUILD SUCCESS`，约 2 分钟；完整输出见 [`docs/test-evidence/20261116-it-load/mvn-verify.txt`](docs/test-evidence/20261116-it-load/mvn-verify.txt)。
-- 覆盖率门禁：后端 `mvn verify` 中 JaCoCo 对 `AppointmentService` / `DoctorScheduleService` 行覆盖 ≥95%（当前均 100%）；前端 `npm run test:coverage` 对 `tools/style-guard/index.mjs` 与 `src/utils/tableDensity.js` 行/分支/函数 ≥95%。
+- 覆盖率门禁：后端 `mvn verify` 中 JaCoCo 对 `AppointmentService` / `DoctorScheduleService` 行覆盖 ≥95%（当前 AppointmentService 99.1%、DoctorScheduleService 100%）；前端 `npm run test:coverage` 对 `tools/style-guard/index.mjs` 与 `src/utils/tableDensity.js` 行/分支/函数 ≥95%。
 - k6 race / oversell 已实跑（2026-11-16，Docker Desktop 本机）：race 100 个号全部成功，oversell 20 个号成功、80 个请求被正常拒绝，`verify.sql` 两条排班均 PASS。证据：[`race.log`](docs/test-evidence/20261116-it-load/race.log)、[`summary-race.json`](docs/test-evidence/20261116-it-load/summary-race.json)、[`oversell.log`](docs/test-evidence/20261116-it-load/oversell.log)、[`summary-oversell.json`](docs/test-evidence/20261116-it-load/summary-oversell.json)、[`verify.log`](docs/test-evidence/20261116-it-load/verify.log)、[`fixture.log`](docs/test-evidence/20261116-it-load/fixture.log)。
 
 <!-- LOAD_RESULTS_START -->

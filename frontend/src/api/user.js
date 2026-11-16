@@ -29,7 +29,7 @@ export const updatePet = (id, d) => put(`/client/pet/${id}`, d)
 export const removePet = (id) => del(`/client/pet/${id}`)
 
 // —— 预约与模拟支付 ——
-export const createAppointment = (d) => post('/client/appointment', d)
+export const createAppointment = (d, config) => post('/client/appointment', d, config)
 export const payAppointment = (id, config) => post(`/client/appointment/${id}/pay`, undefined, config)
 export const cancelAppointment = (id, d) => post(`/client/appointment/${id}/cancel`, d)
 export const appointmentPage = (params) => get('/client/appointment/page', params)

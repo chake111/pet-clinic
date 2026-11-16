@@ -27,6 +27,13 @@ public interface AppointmentMapper extends BaseMapper<Appointment> {
     Appointment selectByIdForUpdate(@Param("id") Long id);
 
     /**
+     * 按幂等键回读原单。raw @Select 不会自动追加逻辑删除条件，必须显式写 deleted = 0，
+     * 否则已删除的历史单会挡住客户端用同一个键重新下单。
+     */
+    @Select("SELECT * FROM appointment WHERE user_id = #{userId} AND idem_key = #{idemKey} AND deleted = 0 LIMIT 1")
+    Appointment selectByUserAndIdemKey(@Param("userId") Long userId, @Param("idemKey") String idemKey);
+
+    /**
      * 超时未支付的候选 id。只取 id、按 id 稳定排序，真正的判定留在锁内重做；
      * 截止线由调用方算一次传进来，和支付接口用同一个值。
      */

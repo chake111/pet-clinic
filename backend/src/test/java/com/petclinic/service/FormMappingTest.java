@@ -556,7 +556,7 @@ class FormMappingTest {
         Appointment appointment;
 
         ApptService() {
-            super(null, null, null, null, null, null, null, null, null);
+            super(null, null, null, null, null, null, null, null, null, null);
         }
 
         @Override

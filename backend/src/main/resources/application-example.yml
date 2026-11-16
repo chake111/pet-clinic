@@ -83,6 +83,9 @@ petclinic:
     url-prefix: /api/uploads
     max-size-bytes: 5242880
   pay-timeout-minutes: 30
+  scheduler:
+    # 定时清扫任务的多实例租约（秒）。远大于一轮耗时；实例崩溃后最多等这么久由其他实例接管，必须大于 0
+    lease-seconds: 300
 
 logging:
   level:
