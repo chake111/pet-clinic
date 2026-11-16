@@ -78,6 +78,7 @@ class ExpireAndRaceIT extends MySqlITSupport {
                 appointmentService.cancelByUser(id, "IT 并发取消");
                 return true;
             } catch (BizException e) {
+                // VisitOverdueException 继承 BizException，过期未支付单也走这里
                 return false;
             } finally {
                 UserContext.clear();

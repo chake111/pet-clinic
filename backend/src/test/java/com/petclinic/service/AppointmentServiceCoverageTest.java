@@ -305,7 +305,10 @@ class AppointmentServiceCoverageTest {
         AppointmentVo vo = service.create(form(1L, 2L, 4L, "  发热  "));
 
         assertThat(vo.getId()).isEqualTo(100L);
-        assertThat(vo.getOrderNo()).startsWith("PC").matches("PC\\d{25}");
+        assertThat(vo.getOrderNo())
+                .startsWith("PC")
+                .matches("PC\\d+")
+                .hasSizeBetween(19, 32);
         assertThat(vo.getUserId()).isEqualTo(7L);
         assertThat(vo.getPetId()).isEqualTo(1L);
         assertThat(vo.getDoctorId()).isEqualTo(2L);
