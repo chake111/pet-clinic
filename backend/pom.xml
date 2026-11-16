@@ -139,6 +139,56 @@
                     </execution>
                 </executions>
             </plugin>
+            <!-- 覆盖率：prepare-agent 供 surefire 与 failsafe 共用，verify 阶段生成报告 -->
+            <plugin>
+                <groupId>org.jacoco</groupId>
+                <artifactId>jacoco-maven-plugin</artifactId>
+                <version>0.8.13</version>
+                <executions>
+                    <execution>
+                        <id>prepare-agent</id>
+                        <goals>
+                            <goal>prepare-agent</goal>
+                        </goals>
+                    </execution>
+                    <execution>
+                        <id>report</id>
+                        <phase>verify</phase>
+                        <goals>
+                            <goal>report</goal>
+                        </goals>
+                        <configuration>
+                            <formats>HTML,XML,CSV</formats>
+                        </configuration>
+                    </execution>
+                    <!-- 只卡本次改动与预约核心：全量报告仍生成，但不把 DTO/配置/控制器算进门禁 -->
+                    <execution>
+                        <id>check-core-coverage</id>
+                        <phase>verify</phase>
+                        <goals>
+                            <goal>check</goal>
+                        </goals>
+                        <configuration>
+                            <rules>
+                                <rule>
+                                    <element>CLASS</element>
+                                    <limits>
+                                        <limit>
+                                            <counter>LINE</counter>
+                                            <value>COVEREDRATIO</value>
+                                            <minimum>0.95</minimum>
+                                        </limit>
+                                    </limits>
+                                </rule>
+                            </rules>
+                            <includes>
+                                <include>com/petclinic/service/AppointmentService.class</include>
+                                <include>com/petclinic/service/DoctorScheduleService.class</include>
+                            </includes>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
         </plugins>
     </build>
 </project>

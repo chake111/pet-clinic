@@ -87,7 +87,7 @@
 cd backend && mvn --batch-mode --no-transfer-progress test
 ```
 
-现有 51 个用例，覆盖 JWT 密钥与令牌版本、账号状态校验、状态取值、排班周期校验、批量查询与 WebSocket 会话注册表。只跑 surefire，不需要 Docker。
+现有 130 个用例，覆盖 JWT 密钥与令牌版本、账号状态校验、状态取值、排班周期校验、批量查询、WebSocket 会话注册表，以及预约与排班两个核心服务的状态机分支。只跑 surefire，不需要 Docker。
 
 ### 集成测试
 
@@ -116,7 +116,8 @@ bash tools/load/run-load.sh
 
 ### 实跑结果
 
-- `mvn verify`（2026-11-16，本机）：51 个单元测试 + 7 个集成测试全部通过，`BUILD SUCCESS`，约 1 分钟；完整输出见 [`docs/test-evidence/20261116-it-load/mvn-verify.txt`](docs/test-evidence/20261116-it-load/mvn-verify.txt)。
+- `mvn verify`（2026-11-16，本机）：130 个单元测试 + 7 个集成测试全部通过，`BUILD SUCCESS`，约 1 分钟；完整输出见 [`docs/test-evidence/20261116-it-load/mvn-verify.txt`](docs/test-evidence/20261116-it-load/mvn-verify.txt)。
+- 覆盖率门禁：后端 `mvn verify` 中 JaCoCo 对 `AppointmentService` / `DoctorScheduleService` 行覆盖 ≥95%（当前均 100%）；前端 `npm run test:coverage` 对 `tools/style-guard/index.mjs` 与 `src/utils/tableDensity.js` 行/分支/函数 ≥95%。
 - k6 race / oversell 尚未跑，结果待补，证据文件见同目录。
 
 <!-- LOAD_RESULTS_START -->
