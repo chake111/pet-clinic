@@ -27,6 +27,8 @@ Thumbs.db
 desktop.ini
 
 # 本地/生产环境配置文件（可能含真实密码，用 application-example.yml 作模板）
+# Docker Compose 的口令与 JWT 密钥
+.env
 backend/src/main/resources/application-local.yml
 backend/src/main/resources/application-prod.yml
 !backend/src/main/resources/application-example.yml

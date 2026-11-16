@@ -75,12 +75,35 @@
 
 - 后端：JDK 17 + `mvn --batch-mode --no-transfer-progress verify`（单元测试 + 打包）
 - 前端：Node.js 22 + `npm ci`、`npm run lint`、`npm test`、`npm run build`
+- 部署：Docker Compose 构建并启动 MySQL、后端、nginx，校验健康接口与种子数据（仅 PR）
 
-工作流见 [`.github/workflows/ci.yml`](.github/workflows/ci.yml)，action 版本由 Dependabot 每周检查。Dependabot 的英文 PR 标题由 `Localize Dependabot PR` 工作流自动改成中文。
+工作流见 [`.github/workflows/ci.yml`](.github/workflows/ci.yml) 与 [`.github/workflows/docker.yml`](.github/workflows/docker.yml)，action 版本由 Dependabot 每周检查。Dependabot 的英文 PR 标题由 `Localize Dependabot PR` 工作流自动改成中文。
 
 ## 测试与质量
 
 CI 覆盖后端单元测试与前端 lint / test / build；隔离环境下的接口与浏览器验收脚本见 [tools/README.md](tools/README.md)，过程证据在 [docs/test-evidence/](docs/test-evidence/)。
+
+## Docker 一键启动（演示环境）
+
+要求 Docker Desktop 已启动（`docker info` 有输出）。在仓库根目录执行；首次构建会下载 Maven 与 npm 依赖，时间取决于网络。
+
+```bash
+cp .env.example .env          # 填入 PETCLINIC_MYSQL_ROOT_PASSWORD、PETCLINIC_DB_PASSWORD、PETCLINIC_JWT_SECRET
+docker compose up -d --build --wait --wait-timeout 300
+docker compose ps             # 三个服务 healthy 后打开 http://127.0.0.1:8088
+```
+
+Compose 起三个服务：MySQL 8.4 LTS、Spring Boot 后端、nginx + Vue 构建产物。数据库不发布到宿主机；首次启动自动执行 `sql/01_schema.sql` 和 `sql/02_data.sql`，导入 12 张表、12 位医生和 24 张演示图。
+
+- 用户端：http://127.0.0.1:8088/
+- 后台：http://127.0.0.1:8088/admin/login
+- Swagger：http://127.0.0.1:8088/api/swagger-ui/index.html
+- 停止并保留数据：`docker compose down`
+- 停止并清空数据库与上传图片：`docker compose down -v`
+- 改代码后重建：`docker compose up -d --build --wait`
+- 看日志：`docker compose logs -f backend`（或 `db`、`web`）
+
+`.env` 含口令与 JWT 密钥，已被 `.gitignore` 忽略，不要提交。JWT 密钥可用 `openssl rand -base64 48` 生成，长度至少 32 字节。这套 compose 面向本机演示；生产部署仍看 [docs/部署步骤.md](docs/部署步骤.md) 第 7 节。
 
 ## 快速开始
 

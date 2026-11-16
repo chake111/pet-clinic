@@ -1,0 +1,89 @@
+name: pet-clinic
+
+x-logging: &default-logging
+  driver: json-file
+  options:
+    max-size: "10m"
+    max-file: "3"
+
+services:
+  db:
+    image: mysql:8.4
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: ${PETCLINIC_MYSQL_ROOT_PASSWORD:?set PETCLINIC_MYSQL_ROOT_PASSWORD in .env}
+      MYSQL_DATABASE: pet_clinic
+      MYSQL_USER: petapp
+      MYSQL_PASSWORD: ${PETCLINIC_DB_PASSWORD:?set PETCLINIC_DB_PASSWORD in .env}
+      TZ: Asia/Shanghai
+    command:
+      - --default-time-zone=+08:00
+      - --character-set-server=utf8mb4
+      - --collation-server=utf8mb4_general_ci
+    volumes:
+      - mysql_data:/var/lib/mysql
+      - ./sql/01_schema.sql:/docker-entrypoint-initdb.d/01_schema.sql:ro
+      - ./sql/02_data.sql:/docker-entrypoint-initdb.d/02_data.sql:ro
+    healthcheck:
+      # 不只看 TCP 活着，还要确认初始化脚本真的建出了业务表
+      test: ["CMD-SHELL", 'MYSQL_PWD="$$MYSQL_PASSWORD" mysql -h 127.0.0.1 -u petapp -N -e "SELECT 1 FROM pet_clinic.doctor LIMIT 1"']
+      interval: 10s
+      timeout: 5s
+      retries: 12
+      start_period: 60s
+    stop_grace_period: 30s
+    logging: *default-logging
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    image: pet-clinic-backend:local
+    restart: unless-stopped
+    environment:
+      SPRING_DATASOURCE_URL: "jdbc:mysql://db:3306/pet_clinic?useUnicode=true&characterEncoding=utf8&serverTimezone=Asia/Shanghai&useSSL=false&allowPublicKeyRetrieval=true&rewriteBatchedStatements=true"
+      DB_USERNAME: petapp
+      DB_PASSWORD: ${PETCLINIC_DB_PASSWORD:?set PETCLINIC_DB_PASSWORD in .env}
+      JWT_SECRET: ${PETCLINIC_JWT_SECRET:?set PETCLINIC_JWT_SECRET in .env}
+      PETCLINIC_UPLOAD_DIR: /app/uploads
+      TZ: Asia/Shanghai
+      JAVA_TOOL_OPTIONS: "-XX:MaxRAMPercentage=75.0 -Duser.timezone=Asia/Shanghai"
+    volumes:
+      - uploads_data:/app/uploads
+    depends_on:
+      db:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-fsS", "http://127.0.0.1:8081/api/actuator/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+      start_period: 60s
+    security_opt:
+      - no-new-privileges:true
+    logging: *default-logging
+
+  web:
+    build:
+      context: .
+      dockerfile: deploy/web/Dockerfile
+    image: pet-clinic-web:local
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:8088:80"
+    depends_on:
+      backend:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "wget", "-q", "-O", "/dev/null", "http://127.0.0.1/healthz"]
+      interval: 10s
+      timeout: 5s
+      retries: 6
+      start_period: 10s
+    security_opt:
+      - no-new-privileges:true
+    logging: *default-logging
+
+volumes:
+  mysql_data:
+  uploads_data:

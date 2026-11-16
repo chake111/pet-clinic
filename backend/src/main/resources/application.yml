@@ -53,6 +53,15 @@ springdoc:
   api-docs:
     path: /v3/api-docs
 
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health
+  endpoint:
+    health:
+      show-details: never
+
 petclinic:
   # 必填，没有默认值：HMAC-SHA 密钥（算法随长度自动选：32B→HS256、48B→HS384），长度 >= 32 字节。
   # 启动时会拒绝空值、过短值和历史示例值；本地开发也要 export JWT_SECRET。
