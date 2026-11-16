@@ -88,7 +88,7 @@
 cd backend && mvn --batch-mode --no-transfer-progress test
 ```
 
-现有 141 个用例，覆盖 JWT 密钥与令牌版本、账号状态校验、状态取值、排班周期校验、批量查询、WebSocket 会话注册表，以及预约与排班两个核心服务的状态机分支；下单幂等键的预查、唯一键回读、非法键，清扫任务的租约跳过/释放也在其中。只跑 surefire，不需要 Docker。
+现有 144 个用例，覆盖 JWT 密钥与令牌版本、账号状态校验、状态取值、排班周期校验、批量查询、WebSocket 会话注册表，以及预约与排班两个核心服务的状态机分支；下单幂等键的预查、唯一键回读、非法键，清扫任务的租约跳过/释放也在其中。只跑 surefire，不需要 Docker。
 
 ### 集成测试
 
@@ -118,7 +118,7 @@ bash tools/load/run-load.sh
 ### 实跑结果
 
 - `mvn verify`（2026-11-16，本机）：130 个单元测试 + 7 个集成测试全部通过，`BUILD SUCCESS`，约 2 分钟；完整输出见 [`docs/test-evidence/20261116-it-load/mvn-verify.txt`](docs/test-evidence/20261116-it-load/mvn-verify.txt)。
-- 覆盖率门禁：后端 `mvn verify` 中 JaCoCo 对 `AppointmentService` / `DoctorScheduleService` 行覆盖 ≥95%（当前均 100%）；前端 `npm run test:coverage` 对 `tools/style-guard/index.mjs` 与 `src/utils/tableDensity.js` 行/分支/函数 ≥95%。
+- 覆盖率门禁：后端 `mvn verify` 中 JaCoCo 对 `AppointmentService` / `DoctorScheduleService` 行覆盖 ≥95%（当前 AppointmentService 99.1%、DoctorScheduleService 100%）；前端 `npm run test:coverage` 对 `tools/style-guard/index.mjs` 与 `src/utils/tableDensity.js` 行/分支/函数 ≥95%。
 - k6 race / oversell 已实跑（2026-11-16，Docker Desktop 本机）：race 100 个号全部成功，oversell 20 个号成功、80 个请求被正常拒绝，`verify.sql` 两条排班均 PASS。证据：[`race.log`](docs/test-evidence/20261116-it-load/race.log)、[`summary-race.json`](docs/test-evidence/20261116-it-load/summary-race.json)、[`oversell.log`](docs/test-evidence/20261116-it-load/oversell.log)、[`summary-oversell.json`](docs/test-evidence/20261116-it-load/summary-oversell.json)、[`verify.log`](docs/test-evidence/20261116-it-load/verify.log)、[`fixture.log`](docs/test-evidence/20261116-it-load/fixture.log)。
 
 <!-- LOAD_RESULTS_START -->

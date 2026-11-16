@@ -169,7 +169,8 @@ class AppointmentServiceCoverageTest {
 
         assertThat(e.getCode()).isEqualTo(400);
         assertThat(e.getMessage()).contains("该医生已停诊");
-        verify(scheduleMapper, never()).selectByIdForUpdate(any());
+        verify(scheduleMapper, never()).tryOccupy(any());
+        verify(appointmentMapper, never()).insert(any(Appointment.class));
     }
 
     @Test
@@ -180,7 +181,8 @@ class AppointmentServiceCoverageTest {
                 .contains("请描述症状");
         assertThat(biz(() -> service.create(form(1L, 2L, 4L, "   "))).getMessage())
                 .contains("请描述症状");
-        verify(scheduleMapper, never()).selectByIdForUpdate(any());
+        verify(scheduleMapper, never()).tryOccupy(any());
+        verify(appointmentMapper, never()).insert(any(Appointment.class));
     }
 
     @Test
@@ -460,6 +462,40 @@ class AppointmentServiceCoverageTest {
 
         assertThat(e.getCode()).isEqualTo(404);
         assertThat(e.getMessage()).contains("预约记录不存在");
+        verify(appointmentMapper, never()).insert(any(Appointment.class));
+    }
+
+    @Test
+    void createResolvesConcurrentKeyBeforePayloadValidation() {
+        UserContext.set(client(7L));
+        String key = "concurrent-payload-01";
+        Appointment winner = pendingAppointment(66L, 7L);
+        // 锁外预查没命中，锁内复查命中：并发首单在这个窗口提交，不应再走宠物/医生校验
+        when(appointmentMapper.selectByUserAndIdemKey(7L, key)).thenReturn(null, winner);
+        when(scheduleMapper.selectByIdForUpdate(4L)).thenReturn(schedule(4L, 2L, LocalDate.now().plusDays(1)));
+        when(petService.requireOwned(any())).thenThrow(BizException.notFound("宠物"));
+
+        AppointmentVo vo = service.create(form(999L, 2L, 4L, "换了宠物"), key);
+
+        assertThat(vo.getId()).isEqualTo(66L);
+        verify(petService, never()).requireOwned(any());
+        verify(appointmentMapper, never()).insert(any(Appointment.class));
+    }
+
+    @Test
+    void createReturnsOriginalOrderWhenValidationFailsButConcurrentWinnerExists() {
+        UserContext.set(client(7L));
+        String key = "concurrent-payload-02";
+        Appointment winner = pendingAppointment(67L, 7L);
+        // 锁外与锁内都没命中，宠物校验失败后回读命中并发首单（不同时段时走这条兜底）
+        when(appointmentMapper.selectByUserAndIdemKey(7L, key)).thenReturn(null, null, winner);
+        when(scheduleMapper.selectByIdForUpdate(4L)).thenReturn(schedule(4L, 2L, LocalDate.now().plusDays(1)));
+        when(petService.requireOwned(any())).thenThrow(BizException.notFound("宠物"));
+
+        AppointmentVo vo = service.create(form(999L, 2L, 4L, "换了宠物"), key);
+
+        assertThat(vo.getId()).isEqualTo(67L);
+        verify(petService).requireOwned(999L);
         verify(appointmentMapper, never()).insert(any(Appointment.class));
     }
 

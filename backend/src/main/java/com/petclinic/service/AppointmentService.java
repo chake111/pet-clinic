@@ -99,6 +99,9 @@ public class AppointmentService extends ServiceImpl<AppointmentMapper, Appointme
      * 锁外的预查只是重试快路径——它让"时段已过期/已停诊/排班已删"的重试仍能拿到原单，
      * 而不是先被校验拦下报错。
      *
+     * <p>并发同键的第二个请求即使换了参数，也会先在排班锁内回读原单；参数校验失败时再回读一次，
+     * 避免把并发首单尚未提交的窗口误报成坏请求。
+     *
      * <p>这里不能用 @Transactional 包整个方法：同类内 create(req) 自调用不走代理，
      * 而且唯一键冲突必须先随事务回滚（扣号与 last_queue_no 一起退回）之后，
      * 才能在事务外重新读到冲突方已提交的原单。事务边界交给 TransactionTemplate。
@@ -126,7 +129,7 @@ public class AppointmentService extends ServiceImpl<AppointmentMapper, Appointme
                 throw e;
             }
             // 事务已经回滚（扣号与 last_queue_no 一并退回），此时才读得到冲突方提交的原单。
-            Appointment existing = readIdemRowAfterConflict(userId, key);
+            Appointment existing = readIdemRowWithRetry(userId, key);
             if (existing == null) {
                 // 撞的是 uk_order_no（27 位随机串重复），与幂等键无关，按原语义抛出
                 throw e;
@@ -134,25 +137,27 @@ public class AppointmentService extends ServiceImpl<AppointmentMapper, Appointme
             log.warn("下单唯一键冲突命中幂等键，回读原单：user={} key={} appointment={}",
                     userId, key, existing.getId());
             return replayOf(existing, req);
+        } catch (BizException e) {
+            // 参数校验失败也可能是并发首单尚未提交：再回读一次，命中同键原单就按幂等返回；
+            // 仍然没有说明这次确实是坏请求，原样抛出。
+            if (key != null) {
+                Appointment existing = readIdemRowWithRetry(userId, key);
+                if (existing != null) {
+                    log.warn("下单校验失败但同键原单已存在，按幂等返回原单：user={} key={} appointment={}",
+                            userId, key, existing.getId());
+                    return replayOf(existing, req);
+                }
+            }
+            throw e;
         }
     }
 
     /** 下单主体。key 为 null 时与改造前完全一致。 */
     private AppointmentVo doCreate(AppointmentForm req, String key, Long userId) {
-        Pet pet = petService.requireOwned(req.getPetId());
-        Doctor doctor = doctorMapper.selectById(req.getDoctorId());
-        if (doctor == null) {
-            throw BizException.notFound("医生");
-        }
-        if (doctor.getStatus() != 1) {
-            throw new BizException("该医生已停诊，请改约其他医生");
-        }
-        if (req.getSymptom() == null || req.getSymptom().isBlank()) {
-            throw new BizException("请描述症状");
-        }
-        // 下单第一件事是把排班行锁住再读。锁外的快照读会给出可触发的交错：
-        // 用户读到旧医生/旧日期 → 管理员锁行、确认"还没有预约引用"、改归属并提交 → 用户扣号成功，
-        // 却把先前读到的旧信息写进预约，快照与归属再次分叉（I10 的另一半）。
+        // 先把排班行锁住并做幂等回读，再校验宠物/医生/症状：并发同键的第二个请求即使换了
+        // 非法 petId/doctorId，也应在参数校验之前收敛到首个已提交的原单。
+        // 锁外的快照读会给出可触发的交错：用户读到旧医生/旧日期 → 管理员锁行、确认"还没有预约引用"、
+        // 改归属并提交 → 用户扣号成功，却把先前读到的旧信息写进预约，快照与归属再次分叉（I10 的另一半）。
         // 同一条锁读也挡住"给刚被删掉的排班继续扣号"：删行是物理 DELETE，读不到就是不存在。
         // 锁顺序仍是"下单只锁排班、再插预约"，与取消路径（先锁预约再退号）同向，不会成环。
         DoctorSchedule sch = scheduleMapper.selectByIdForUpdate(req.getScheduleId());
@@ -163,6 +168,18 @@ public class AppointmentService extends ServiceImpl<AppointmentMapper, Appointme
             if (existing != null) {
                 return replayOf(existing, req);
             }
+        }
+
+        Pet pet = petService.requireOwned(req.getPetId());
+        Doctor doctor = doctorMapper.selectById(req.getDoctorId());
+        if (doctor == null) {
+            throw BizException.notFound("医生");
+        }
+        if (doctor.getStatus() != 1) {
+            throw new BizException("该医生已停诊，请改约其他医生");
+        }
+        if (req.getSymptom() == null || req.getSymptom().isBlank()) {
+            throw new BizException("请描述症状");
         }
         if (sch == null) {
             throw BizException.notFound("排班时段");
@@ -546,11 +563,13 @@ public class AppointmentService extends ServiceImpl<AppointmentMapper, Appointme
     }
 
     /**
-     * 唯一键冲突后的回读。InnoDB 的唯一键检查会等冲突事务结束：对方提交才会报重复键，
-     * 对方回滚则本条插入直接成功。因此正常情况下回读一定能读到对方已提交的行。
-     * 这里仍留两次短重试，覆盖提交可见性与回读连接之间的极端竞态；仍读不到时由调用方按原异常抛出。
+     * 幂等回读的重试版。两处调用：唯一键冲突后、参数校验失败后。
+     *
+     * <p>InnoDB 的唯一键检查会等冲突事务结束：对方提交才报重复键，对方回滚则本条插入直接成功，
+     * 所以冲突后正常能立即读到原单。参数校验失败时，并发的首个请求也可能尚未提交，同样给两次短重试。
+     * 仍读不到时由调用方按原异常抛出。
      */
-    private Appointment readIdemRowAfterConflict(Long userId, String key) {
+    private Appointment readIdemRowWithRetry(Long userId, String key) {
         Appointment existing = baseMapper.selectByUserAndIdemKey(userId, key);
         for (int attempt = 0; existing == null && attempt < 2; attempt++) {
             try {
