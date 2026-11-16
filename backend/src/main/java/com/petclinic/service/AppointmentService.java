@@ -126,7 +126,7 @@ public class AppointmentService extends ServiceImpl<AppointmentMapper, Appointme
                 throw e;
             }
             // 事务已经回滚（扣号与 last_queue_no 一并退回），此时才读得到冲突方提交的原单。
-            Appointment existing = baseMapper.selectByUserAndIdemKey(userId, key);
+            Appointment existing = readIdemRowAfterConflict(userId, key);
             if (existing == null) {
                 // 撞的是 uk_order_no（27 位随机串重复），与幂等键无关，按原语义抛出
                 throw e;
@@ -532,6 +532,10 @@ public class AppointmentService extends ServiceImpl<AppointmentMapper, Appointme
      * 但要把分歧记进 WARN，便于排查客户端是否错误复用了键。
      */
     private AppointmentVo replayOf(Appointment existing, AppointmentForm req) {
+        // 回读查询本身已按 user_id 过滤；再断言一次归属，防止将来有人复用到别的入口时绕过用户维度。
+        if (!Objects.equals(existing.getUserId(), UserContext.requireId())) {
+            throw BizException.notFound("预约记录");
+        }
         if (!Objects.equals(existing.getPetId(), req.getPetId())
                 || !Objects.equals(existing.getScheduleId(), req.getScheduleId())) {
             log.warn("幂等键重放参数不一致，返回原单：appointment={} 首次 pet={} schedule={} 本次 pet={} schedule={}",
@@ -539,6 +543,25 @@ public class AppointmentService extends ServiceImpl<AppointmentMapper, Appointme
                     req.getPetId(), req.getScheduleId());
         }
         return detailOf(existing, false);
+    }
+
+    /**
+     * 唯一键冲突后的回读。InnoDB 的唯一键检查会等冲突事务结束：对方提交才会报重复键，
+     * 对方回滚则本条插入直接成功。因此正常情况下回读一定能读到对方已提交的行。
+     * 这里仍留两次短重试，覆盖提交可见性与回读连接之间的极端竞态；仍读不到时由调用方按原异常抛出。
+     */
+    private Appointment readIdemRowAfterConflict(Long userId, String key) {
+        Appointment existing = baseMapper.selectByUserAndIdemKey(userId, key);
+        for (int attempt = 0; existing == null && attempt < 2; attempt++) {
+            try {
+                Thread.sleep(20L);
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+                break;
+            }
+            existing = baseMapper.selectByUserAndIdemKey(userId, key);
+        }
+        return existing;
     }
 
     public static class VisitOverdueException extends BizException {

@@ -62,6 +62,7 @@ public class AppointmentSweepTask {
             return;
         }
         try {
+            // sweep 内部逐单 catch：单张失败继续下一张；候选查询异常会冒泡并在这里释放租约，交给下一轮。
             action.run();
         } finally {
             // 无论本轮成功与否都释放，避免让其他实例白等到 TTL 到期

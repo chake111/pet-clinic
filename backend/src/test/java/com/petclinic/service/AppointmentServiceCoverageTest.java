@@ -449,6 +449,20 @@ class AppointmentServiceCoverageTest {
         verify(appointmentMapper, never()).insert(any(Appointment.class));
     }
 
+    @Test
+    void createReplayWithForeignOwnerIsTreatedAsNotFound() {
+        UserContext.set(client(7L));
+        String key = "foreign-owner-01";
+        // 回读查询本身带 user_id=7；这里模拟将来有人复用到别的入口后拿到他人的行，防御性断言必须挡住。
+        when(appointmentMapper.selectByUserAndIdemKey(7L, key)).thenReturn(pendingAppointment(88L, 8L));
+
+        BizException e = biz(() -> service.create(form(1L, 2L, 4L, "发热"), key));
+
+        assertThat(e.getCode()).isEqualTo(404);
+        assertThat(e.getMessage()).contains("预约记录不存在");
+        verify(appointmentMapper, never()).insert(any(Appointment.class));
+    }
+
     // ---------------------------------------------------------------- 支付
 
     @Test
