@@ -21,7 +21,7 @@ const argConfig = argv.find(a => a.startsWith('--config='))?.slice('--config='.l
 const configPath = resolve(argConfig ?? process.env.PETQA_CONFIG ?? 'runtime.json')
 const cfg = JSON.parse(readFileSync(configPath, 'utf8'))
 const root = dirname(configPath)
-assert.match(cfg.db, /^pet_clinic_test_[a-f0-9]{8}$/, '只允许在隔离测试库运行')
+assert.match(cfg.db, /^yuzhua_test_[a-f0-9]{8}$/, '只允许在隔离测试库运行')
 assert.equal(cfg.api, 'http://127.0.0.1:8082/api')
 const actors = JSON.parse(readFileSync(resolve(root, 'actors.json'), 'utf8'))
 const SEED_PASSWORD = '123456'

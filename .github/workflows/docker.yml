@@ -26,9 +26,9 @@ jobs:
       - name: 准备 CI 环境变量
         run: |
           cat > .env <<'EOF'
-          PETCLINIC_MYSQL_ROOT_PASSWORD=ci-root-password
-          PETCLINIC_DB_PASSWORD=ci-db-password
-          PETCLINIC_JWT_SECRET=ci-jwt-secret-for-github-actions-0123456789
+          YUZHUA_MYSQL_ROOT_PASSWORD=ci-root-password
+          YUZHUA_DB_PASSWORD=ci-db-password
+          YUZHUA_JWT_SECRET=ci-jwt-secret-for-github-actions-0123456789
           EOF
 
       - name: 校验 Compose 配置

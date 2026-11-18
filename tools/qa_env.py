@@ -10,12 +10,12 @@
   误连 3306 会把测试库建到本机业务实例里。
 * 被测应用必须用 prepare 生成的**同一套受限账号**启动，不能继承环境里的
   DB_USERNAME/DB_PASSWORD（那可能是 root，也可能与校验用的身份不同）。
-* 01_schema.sql 里写死了 `DROP DATABASE pet_clinic`，直接导入会删掉业务库。
+* 01_schema.sql 里写死了 `DROP DATABASE yuzhua`，直接导入会删掉业务库。
   导入前必须改写成测试库并校验，校验不过就不执行。
 * 启动失败不能留下 PID：否则下一次 start 要求先 stop，而 stop 又找不到进程。
 
 用法：
-    python tools/qa_env.py prepare --config <runtime.json> --db pet_clinic_test_ab12cd34 \
+    python tools/qa_env.py prepare --config <runtime.json> --db yuzhua_test_ab12cd34 \
         --admin-defaults-file <root.cnf> [--jar <jar>]
     python tools/qa_env.py check   --config <runtime.json>
     python tools/qa_env.py start   --config <runtime.json>
@@ -48,7 +48,7 @@ import urllib.error
 import urllib.request
 
 ROOT = pathlib.Path(__file__).resolve().parents[1]
-DB_NAME = re.compile(r'pet_clinic_test_[a-f0-9]{8}')
+DB_NAME = re.compile(r'yuzhua_test_[a-f0-9]{8}')
 API = 'http://127.0.0.1:8082/api'
 PORT = 3307
 
@@ -81,7 +81,7 @@ def save(path, c):
 def validate_shape(c):
     """纯形状校验：不连库，任何写操作之前先过这一关。"""
     if not DB_NAME.fullmatch(c.get('db') or ''):
-        raise ConfigError(f'库名必须是 pet_clinic_test_<8位小写hex>，实际为 {c.get("db")!r}')
+        raise ConfigError(f'库名必须是 yuzhua_test_<8位小写hex>，实际为 {c.get("db")!r}')
     if c.get('api') != API:
         raise ConfigError(f'后端地址必须是 {API}，实际为 {c.get("api")!r}')
     if not c.get('mysqlDefaultsFile'):
@@ -171,7 +171,7 @@ def verify_server(c):
 # ---------------------------------------------------------------- 导入脚本改写
 
 def rewrite_sql(text, db):
-    """把写死的 pet_clinic 改写成测试库。只改数据库级语句，表语句不动。"""
+    """把写死的 yuzhua 改写成测试库。只改数据库级语句，表语句不动。"""
     out = []
     for line in text.splitlines():
         stripped = line.strip()
@@ -188,11 +188,12 @@ def rewrite_sql(text, db):
 
 
 def validate_sql(text, db, name):
-    """执行前校验：语句里不能再出现旧的库名，数据库级语句只能指向测试库。"""
+    """执行前校验：语句里不能再出现业务库名，数据库级语句只能指向测试库。"""
     code = '\n'.join(line for line in text.splitlines() if not line.strip().startswith('--'))
-    # pet_clinic 后面跟 _ 属于测试库名的一部分；单独出现的旧库名一律拒绝
-    if re.search(r'pet_clinic(?![\w])', code):
-        raise ConfigError(f'{name} 仍包含旧库名 pet_clinic，拒绝导入')
+    # yuzhua_test_* 是测试库名，邮箱域名 @yuzhua.cn 也不是库名引用；
+    # 其余单独出现的业务库名一律拒绝
+    if re.search(r'(?<![\w@])yuzhua(?![\w])', code):
+        raise ConfigError(f'{name} 仍包含业务库名 yuzhua，拒绝导入')
     for match in re.finditer(r'(?i)\b(DROP|CREATE)\s+DATABASE[^;]*;', code):
         if f'`{db}`' not in match.group(0):
             raise ConfigError(f'{name} 的数据库语句未指向测试库：{match.group(0)}')
@@ -351,7 +352,7 @@ def process_state(pid):
         return 'missing'
     script = ("$p=Get-CimInstance Win32_Process -Filter 'ProcessId=%d'; "
               "if(-not $p){exit 2}; "
-              "if($p.Name -ne 'java.exe' -or $p.CommandLine -notlike '*pet-clinic-server.jar*' "
+              "if($p.Name -ne 'java.exe' -or $p.CommandLine -notlike '*yuzhua-server.jar*' "
               "-or $p.CommandLine -notlike '*--server.port=8082*'){exit 3}; exit 0" % int(pid))
     code = subprocess.run(['powershell', '-NoProfile', '-Command', script]).returncode
     return {0: 'ours', 2: 'missing', 3: 'foreign'}.get(code, 'foreign')
@@ -394,7 +395,7 @@ def verify_instance(c):
     if actual != pid:
         raise ConfigError(f'8082 的监听进程是 {actual}，与配置的 backendPid={pid} 不一致')
     commandline = process_commandline(pid)
-    if 'pet-clinic-server.jar' not in commandline:
+    if 'yuzhua-server.jar' not in commandline:
         raise ConfigError(f'PID {pid} 不是本项目 jar 启动的进程')
     if '--server.port=8082' not in commandline:
         raise ConfigError(f'PID {pid} 的启动命令没有使用 8082 端口')
@@ -508,13 +509,13 @@ def start(path, c):
         c.pop('backendPid', None)
         save(path, c)
 
-    jar = pathlib.Path(c.get('backendJar') or (ROOT / 'backend/target/pet-clinic-server.jar'))
+    jar = pathlib.Path(c.get('backendJar') or (ROOT / 'backend/target/yuzhua-server.jar'))
     if not jar.exists():
         raise ConfigError(f'后端 jar 不存在：{jar}；先 mvn -f backend/pom.xml package -DskipTests')
     secret = read_secret(path)
     cmd = ['java', '-jar', str(jar), '--server.port=8082',
            '--spring.datasource.url=' + jdbc_url(c),
-           '--logging.level.com.petclinic=debug']
+           '--logging.level.com.yuzhua=debug']
     bring_up(path, c, cmd, build_env(c, secret))
     print(f'BACKEND STARTED pid={c["backendPid"]} user={db_user(c)} db={c["db"]}')
 
@@ -556,7 +557,7 @@ def negative_instance(config_path, c):
     """
     validate_shape(c)
     verify_server(c)
-    jar = pathlib.Path(c.get('backendJar') or (ROOT / 'backend/target/pet-clinic-server.jar'))
+    jar = pathlib.Path(c.get('backendJar') or (ROOT / 'backend/target/yuzhua-server.jar'))
     if not jar.exists():
         raise ConfigError(f'后端 jar 不存在：{jar}')
     secret = read_secret(config_path)
@@ -564,7 +565,7 @@ def negative_instance(config_path, c):
     log = open(log_path, 'a', encoding='utf-8', errors='replace')
     proc = subprocess.Popen(
         ['java', '-jar', str(jar), '--server.port=8092', '--spring.datasource.url=' + jdbc_url(c),
-         '--logging.level.com.petclinic=warn'],
+         '--logging.level.com.yuzhua=warn'],
         cwd=str(ROOT), env=build_env(c, secret), stdout=log, stderr=subprocess.STDOUT)
     server = None
     try:
@@ -636,29 +637,32 @@ def selftest(real_config=None):
             failures.append(name)
             print('FAIL', name, repr(error))
 
-    good = {'db': 'pet_clinic_test_ab12cd34', 'api': API, 'mysqlDefaultsFile': 'x.cnf'}
+    good = {'db': 'yuzhua_test_ab12cd34', 'api': API, 'mysqlDefaultsFile': 'x.cnf'}
 
     # 1. 形状：库名/地址/凭据路径
     case('形状-合法', lambda: validate_shape(good))
-    case('形状-业务库名', lambda: validate_shape({**good, 'db': 'pet_clinic'}), '库名必须是')
-    case('形状-库名少一位', lambda: validate_shape({**good, 'db': 'pet_clinic_test_ab12cd3'}), '库名必须是')
-    case('形状-库名大写', lambda: validate_shape({**good, 'db': 'pet_clinic_test_AB12CD34'}), '库名必须是')
+    case('形状-业务库名', lambda: validate_shape({**good, 'db': 'yuzhua'}), '库名必须是')
+    case('形状-库名少一位', lambda: validate_shape({**good, 'db': 'yuzhua_test_ab12cd3'}), '库名必须是')
+    case('形状-库名大写', lambda: validate_shape({**good, 'db': 'yuzhua_test_AB12CD34'}), '库名必须是')
     case('形状-非隔离端口', lambda: validate_shape({**good, 'api': 'http://127.0.0.1:8081/api'}), '后端地址必须是')
     case('形状-缺凭据路径', lambda: validate_shape({**good, 'mysqlDefaultsFile': ''}), 'mysqlDefaultsFile')
 
-    # 2. 导库脚本改写：旧库名必须消失，数据库级语句必须指向测试库
-    schema = 'DROP DATABASE IF EXISTS `pet_clinic`;\nCREATE DATABASE `pet_clinic`;\nUSE `pet_clinic`;\nCREATE TABLE t (id INT);'
-    rewritten = validate_sql(rewrite_sql(schema, 'pet_clinic_test_ab12cd34'), 'pet_clinic_test_ab12cd34', '01_schema.sql')
-    if '`pet_clinic_test_ab12cd34`' in rewritten and not re.search(r'pet_clinic(?![\w])', rewritten):
+    # 2. 导库脚本改写：业务库名必须消失，数据库级语句必须指向测试库
+    schema = 'DROP DATABASE IF EXISTS `yuzhua`;\nCREATE DATABASE `yuzhua`;\nUSE `yuzhua`;\nCREATE TABLE t (id INT);'
+    rewritten = validate_sql(rewrite_sql(schema, 'yuzhua_test_ab12cd34'), 'yuzhua_test_ab12cd34', '01_schema.sql')
+    if '`yuzhua_test_ab12cd34`' in rewritten and not re.search(r'(?<![\w@])yuzhua(?![\w])', rewritten):
         print('PASS 改写-建库指向测试库')
     else:
         failures.append('改写-建库指向测试库')
         print('FAIL 改写-建库指向测试库')
-    case('改写-拒绝遗留旧库名',
-         lambda: validate_sql('USE `pet_clinic`;', 'pet_clinic_test_ab12cd34', '02_data.sql'), '旧库名')
+    case('改写-拒绝遗留业务库名',
+         lambda: validate_sql('USE `yuzhua`;', 'yuzhua_test_ab12cd34', '02_data.sql'), '业务库名')
+    case('改写-放行邮箱域名 yuzhua.cn',
+         lambda: validate_sql("INSERT INTO sys_user (email) VALUES ('admin@yuzhua.cn');",
+                              'yuzhua_test_ab12cd34', '02_data.sql'))
 
     # 3. 授权形状：多一条全局权限就不是隔离账号
-    db = 'pet_clinic_test_ab12cd34'
+    db = 'yuzhua_test_ab12cd34'
     case('授权-仅 USAGE 与单库',
          lambda: validate_grants([f'GRANT USAGE ON *.* TO `u`@`localhost`',
                                   f'GRANT ALL PRIVILEGES ON `{db}`.* TO `u`@`localhost`'], db))
@@ -669,16 +673,16 @@ def selftest(real_config=None):
          '受限授权')
     case('授权-权限落在别的库',
          lambda: validate_grants([f'GRANT USAGE ON *.* TO `u`@`localhost`',
-                                  'GRANT ALL PRIVILEGES ON `pet_clinic`.* TO `u`@`localhost`'], db),
+                                  'GRANT ALL PRIVILEGES ON `yuzhua`.* TO `u`@`localhost`'], db),
          '受限授权')
 
     # 4. 环境变量里存在其他数据库凭据时，子进程仍用受限账号
     with_temp = pathlib.Path(os.environ.get('TEMP', '.')) / ('qa-selftest-%d' % os.getpid())
     with_temp.mkdir(exist_ok=True)
     cnf = with_temp / 'client.cnf'
-    cnf.write_text('[client]\nuser=petqa_test\npassword=restricted-pass\ndatabase=pet_clinic_test_ab12cd34\n',
+    cnf.write_text('[client]\nuser=petqa_test\npassword=restricted-pass\ndatabase=yuzhua_test_ab12cd34\n',
                    encoding='utf-8')
-    polluted = {'db': 'pet_clinic_test_ab12cd34', 'api': API, 'mysqlDefaultsFile': str(cnf),
+    polluted = {'db': 'yuzhua_test_ab12cd34', 'api': API, 'mysqlDefaultsFile': str(cnf),
                 'dbUser': 'petqa_test'}
     saved = dict(os.environ)
     try:
@@ -698,7 +702,7 @@ def selftest(real_config=None):
 
     # 4. 停止：已退出与重复停止要收尾，PID 指向别的进程要拒绝
     cfg_path = with_temp / 'runtime.json'
-    save(cfg_path, {'db': 'pet_clinic_test_ab12cd34', 'api': API,
+    save(cfg_path, {'db': 'yuzhua_test_ab12cd34', 'api': API,
                     'mysqlDefaultsFile': str(cnf), 'dbUser': 'petqa_test', 'backendPid': 999999})
     if stop(cfg_path, json.loads(cfg_path.read_text())) == 'already-stopped' \
             and 'backendPid' not in json.loads(cfg_path.read_text()):
@@ -712,7 +716,7 @@ def selftest(real_config=None):
         failures.append('停止-重复停止')
         print('FAIL 停止-重复停止')
 
-    foreign = {'db': 'pet_clinic_test_ab12cd34', 'api': API,
+    foreign = {'db': 'yuzhua_test_ab12cd34', 'api': API,
                'mysqlDefaultsFile': str(cnf), 'dbUser': 'petqa_test', 'backendPid': os.getpid()}
     save(cfg_path, foreign)
     case('停止-拒绝其他进程', lambda: stop(cfg_path, json.loads(cfg_path.read_text())),
@@ -723,7 +727,7 @@ def selftest(real_config=None):
         ('启动失败-立即退出', [sys.executable, '-c', 'import sys; sys.exit(3)'], 10),
         ('启动失败-超时', [sys.executable, '-c', 'import time; time.sleep(30)'], 1),
     ):
-        c = {'db': 'pet_clinic_test_ab12cd34', 'api': API, 'mysqlDefaultsFile': str(cnf),
+        c = {'db': 'yuzhua_test_ab12cd34', 'api': API, 'mysqlDefaultsFile': str(cnf),
              'dbUser': 'petqa_test', 'backendLog': str(with_temp / 'backend.log')}
         save(cfg_path, c)
         try:
@@ -753,7 +757,7 @@ def selftest(real_config=None):
                 '        self.send_response(200); self.end_headers(); self.wfile.write(b"{}")\n'
                 '    def log_message(self, *args): pass\n'
                 'http.server.HTTPServer(("127.0.0.1", 8082), H).serve_forever()']
-        c = {'db': 'pet_clinic_test_ab12cd34', 'api': API, 'mysqlDefaultsFile': str(cnf),
+        c = {'db': 'yuzhua_test_ab12cd34', 'api': API, 'mysqlDefaultsFile': str(cnf),
              'dbUser': 'petqa_test', 'backendLog': str(with_temp / 'backend.log')}
         save(cfg_path, c)
         try:

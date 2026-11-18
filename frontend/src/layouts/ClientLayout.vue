@@ -1,5 +1,6 @@
 <script setup>
 import brandLogo from '@/assets/logo.svg'
+import { BRAND } from '@/brand.js'
 import { computed, onBeforeUnmount, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { consultUnread } from '@/api/user'
@@ -71,10 +72,11 @@ function logout() {
 <template>
   <div class="shell client-shell" :class="{ 'chat-shell': isConsultRoom }">
     <header v-if="!isConsultRoom" class="top">
-      <router-link to="/" class="brand" aria-label="宠物医院预约问诊系统，返回首页">
+      <router-link to="/" class="brand" :aria-label="BRAND.fullName + '，返回首页'">
         <img class="logo" :src="brandLogo" width="32" height="32" alt="" />
         <span class="txt">
-          <b>宠物医院预约问诊系统</b>
+          <b>{{ BRAND.name }}</b>
+          <i>{{ BRAND.tagline }}</i>
         </span>
       </router-link>
       <div class="who">
@@ -180,6 +182,9 @@ function logout() {
   font-size: 13px;
   line-height: 1.3;
   color: var(--color-muted);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .me {
@@ -287,9 +292,9 @@ function logout() {
   .me em { display: none; }
   .brand b { font-size: 14px; }
 }
-/* 200% 放大阅读下产品名会折成四行，顶栏只剩 logo（链接仍有可访问名称） */
+/* 200% 放大阅读下产品名与副标题会折行，顶栏只剩 logo（链接仍有可访问名称） */
 @media (max-width: 279px) {
-  .brand b { display: none; }
+  .brand .txt { display: none; }
 }
 @media (prefers-reduced-motion: reduce) {
   .tab, .ico, .tab-indicator { transition: none; }

@@ -11,11 +11,11 @@
         <relativePath/>
     </parent>
 
-    <groupId>com.petclinic</groupId>
-    <artifactId>pet-clinic-server</artifactId>
+    <groupId>com.yuzhua</groupId>
+    <artifactId>yuzhua-server</artifactId>
     <version>1.0.0</version>
-    <name>pet-clinic-server</name>
-    <description>宠物医院预约问诊系统 - 后端服务</description>
+    <name>yuzhua-server</name>
+    <description>愈爪|宠物医院预约与在线问诊平台 - 后端服务</description>
 
     <properties>
         <java.version>17</java.version>
@@ -117,7 +117,7 @@
     </dependencies>
 
     <build>
-        <finalName>pet-clinic-server</finalName>
+        <finalName>yuzhua-server</finalName>
         <plugins>
             <plugin>
                 <groupId>org.springframework.boot</groupId>
@@ -187,9 +187,9 @@
                                 </rule>
                             </rules>
                             <includes>
-                                <include>com/petclinic/service/AppointmentService.class</include>
-                                <include>com/petclinic/service/DoctorScheduleService.class</include>
-                                <include>com/petclinic/config/SlowSqlInterceptor.class</include>
+                                <include>com/yuzhua/service/AppointmentService.class</include>
+                                <include>com/yuzhua/service/DoctorScheduleService.class</include>
+                                <include>com/yuzhua/config/SlowSqlInterceptor.class</include>
                             </includes>
                         </configuration>
                     </execution>

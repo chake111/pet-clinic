@@ -9,7 +9,7 @@ RUN mvn -B -q -DskipTests package
 # 分层提取：COPY 顺序按 Spring Boot 官方文档，从最少变化到最常变化
 FROM eclipse-temurin:17-jre-jammy AS layers
 WORKDIR /layers
-COPY --from=build /src/target/pet-clinic-server.jar application.jar
+COPY --from=build /src/target/yuzhua-server.jar application.jar
 RUN java -Djarmode=tools -jar application.jar extract --layers --destination extracted
 
 # 运行时：非 root，装 curl 供 healthcheck 使用

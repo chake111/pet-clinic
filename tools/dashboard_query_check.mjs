@@ -29,7 +29,7 @@ const configPath = resolve(process.argv[configFlag + 1])
 const cfg = JSON.parse(readFileSync(configPath, 'utf8'))
 execFileSync(process.env.PYTHON || 'python', ['tools/qa_env.py', 'instance', '--config', configPath],
   { stdio: 'inherit' })
-assert.match(cfg.db, /^pet_clinic_test_[a-f0-9]{8}$/, '只允许在隔离测试库运行')
+assert.match(cfg.db, /^yuzhua_test_[a-f0-9]{8}$/, '只允许在隔离测试库运行')
 assert.equal(cfg.api, 'http://127.0.0.1:8082/api', '后端地址必须是隔离实例 8082')
 const sql = q => execFileSync('mysql',
   ['--defaults-extra-file=' + cfg.mysqlDefaultsFile, '-BN', '--default-character-set=utf8mb4', '-e', q],

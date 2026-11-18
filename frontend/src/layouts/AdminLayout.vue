@@ -1,5 +1,6 @@
 <script setup>
 import brandLogo from '@/assets/logo.svg'
+import { BRAND } from '@/brand.js'
 import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { ElMessageBox } from 'element-plus'
@@ -96,8 +97,8 @@ onBeforeUnmount(() => window.removeEventListener('resize', onResize))
   <div class="shell admin-shell" :class="{ 'consult-shell': route.name === 'admin-consult-room' }">
     <aside class="side" :class="{ tight: collapsed }">
       <div class="brand">
-        <img class="brand-logo" :src="brandLogo" width="32" height="32" :alt="collapsed ? '宠物医院' : ''" />
-        <span v-if="!collapsed">宠物医院<small>院务工作台</small></span>
+        <img class="brand-logo" :src="brandLogo" width="32" height="32" :alt="collapsed ? BRAND.name : ''" />
+        <span v-if="!collapsed">{{ BRAND.name }}<small>院务工作台</small></span>
       </div>
       <el-menu :default-active="active" :collapse="collapsed" :collapse-transition="false" router>
         <template v-for="group in groups" :key="group.label">

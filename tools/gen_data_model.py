@@ -95,7 +95,7 @@ def main():
       "**手写区可以编辑，重生成时整段保留**。")
     a("")
     ncol = sum(len(t["cols"]) for t in tables)
-    a("库名 `pet_clinic`，MySQL 8，字符集 `utf8mb4`，共 %d 张表、%d 个字段。" % (len(tables), ncol))
+    a("库名 `yuzhua`，MySQL 8，字符集 `utf8mb4`，共 %d 张表、%d 个字段。" % (len(tables), ncol))
     a("")
     a("## 一个前提：没有物理外键")
     a("")

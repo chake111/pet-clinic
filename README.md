@@ -1,8 +1,8 @@
-# 宠物医院预约问诊系统
+# 愈爪|宠物医院预约与在线问诊平台
 
-[![CI](https://github.com/chake111/pet-clinic/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/chake111/pet-clinic/actions/workflows/ci.yml)
+[![CI](https://github.com/chake111/yuzhua-pet-clinic/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/chake111/yuzhua-pet-clinic/actions/workflows/ci.yml)
 
-单家宠物医院自用的预约 + 在线图文问诊系统。宠物主人在手机上找医生、挂号、付款、发起免费图文问诊、拿病历和评价；医生在后台接诊、写病历，还能在会话里一键建议患者到院挂号；管理员管科室、医生、排班、公告和全院数据。
+愈爪|宠物医院预约与在线问诊平台是单家宠物医院自用的预约 + 在线图文问诊系统。宠物主人在手机上找医生、挂号、付款、发起免费图文问诊、拿病历和评价；医生在后台接诊、写病历，还能在会话里一键建议患者到院挂号；管理员管科室、医生、排班、公告和全院数据。
 
 前后端分离：Vue 3 单工程承载用户端与后台，Spring Boot 3 提供 REST + WebSocket 接口，MySQL 存全部业务数据。
 
@@ -65,7 +65,7 @@
 | 前端 | Vue 3.5 Vite 5.4 Element Plus 2.8+ Pinia 2 Vue Router 4 Axios 1.7 ECharts 5.5 |
 | 后端 | Spring Boot 3.5.16 JDK 17 MyBatis-Plus 3.5.17 原生 WebSocket jjwt 0.12.6 |
 | 接口文档 | springdoc-openapi 2.8 + Swagger UI（OpenAPI 3） |
-| 数据 | MySQL 8（库名 `pet_clinic`，13 张表，逻辑外键，逻辑删除） |
+| 数据 | MySQL 8（库名 `yuzhua`，13 张表，逻辑外键，逻辑删除） |
 | 认证 | JWT（HMAC-SHA，jjwt 按密钥长度自动选 HS256/384/512；7 天）+ `HandlerInterceptor` 路径前缀鉴权 + `@RequireRole`；密码 BCrypt |
 
 号源防超卖靠一条带条件的 UPDATE 实现。
@@ -106,7 +106,7 @@ CI 的 backend job 已经执行 `mvn verify`，接入 failsafe 后这些集成�
 bash tools/load/run-load.sh
 ```
 
-脚本用独立 compose 项目 `petclinicload` 起一套隔离环境，不占用本机 3306 端口。两个场景：
+脚本用独立 compose 项目 `yuzhuaload` 起一套隔离环境，不占用本机 3306 端口。两个场景：
 
 | 场景 | 号源 | 并发 |
 | --- | --- | --- |
@@ -121,7 +121,7 @@ bash tools/load/run-load.sh
 bash tools/load/run-steady.sh
 ```
 
-默认保留 `petclinicperf` 栈供截图，结束时打印 Grafana 地址与清理命令；`KEEP=0` 会自动 `down -v`。`RATE` / `DURATION` / `PRE_VUS` 可覆盖默认值。
+默认保留 `yuzhuaperf` 栈供截图，结束时打印 Grafana 地址与清理命令；`KEEP=0` 会自动 `down -v`。`RATE` / `DURATION` / `PRE_VUS` 可覆盖默认值。
 
 ### 实跑结果
 
@@ -157,7 +157,7 @@ bash tools/load/run-steady.sh
 慢 SQL 阈值 200ms，日志只带 statement、type、elapsed、failed，参数不进日志；traceId 由日志 pattern 带出。race 的 100 VU 下单受 Hikari 连接池（20）排队影响，端到端 p95 1.74s，但单条语句未达 200ms；下面的日志来自行锁注入验证（MySQL 事务持有 schedule 9001 行锁 2 秒后发真实下单）：
 
 ```text
-WARN [cdf9b8594a96490dbb4329ffa549b06a] 慢 SQL statement=com.petclinic.mapper.DoctorScheduleMapper.selectByIdForUpdate type=SELECT elapsed=1470ms failed=false
+WARN [cdf9b8594a96490dbb4329ffa549b06a] 慢 SQL statement=com.yuzhua.mapper.DoctorScheduleMapper.selectByIdForUpdate type=SELECT elapsed=1470ms failed=false
 ```
 
 测试环境、接口组合、慢 SQL 注入方式与引用规则见[证据说明](docs/test-evidence/20261116-observability/README.md)。本轮只测读接口；写路径的并发正确性见上面的 race/oversell，两者的 p95 不可直接比较。
@@ -169,12 +169,12 @@ WARN [cdf9b8594a96490dbb4329ffa549b06a] 慢 SQL statement=com.petclinic.mapper.D
 要求 Docker Desktop 已启动（`docker info` 有输出）。在仓库根目录执行；首次构建会下载 Maven 与 npm 依赖，时间取决于网络。
 
 ```bash
-cp .env.example .env          # 填入 PETCLINIC_MYSQL_ROOT_PASSWORD、PETCLINIC_DB_PASSWORD、PETCLINIC_JWT_SECRET
+cp .env.example .env          # 填入 YUZHUA_MYSQL_ROOT_PASSWORD、YUZHUA_DB_PASSWORD、YUZHUA_JWT_SECRET
 docker compose up -d --build --wait --wait-timeout 300
 docker compose ps             # 三个服务 healthy 后打开 http://127.0.0.1:8088
 ```
 
-Compose 起三个服务：MySQL 8.4 LTS、Spring Boot 后端、nginx + Vue 构建产物。数据库不发布到宿主机；首次启动自动执行 `sql/01_schema.sql` 和 `sql/02_data.sql`，导入 12 张表、12 位医生和 24 张演示图。
+Compose 起三个服务：MySQL 8.4 LTS、Spring Boot 后端、nginx + Vue 构建产物。数据库不发布到宿主机；首次启动自动执行 `sql/01_schema.sql` 和 `sql/02_data.sql`，导入 13 张表、12 位医生和 24 张演示图。
 
 - 用户端：http://127.0.0.1:8088/
 - 后台：http://127.0.0.1:8088/admin/login
@@ -185,6 +185,8 @@ Compose 起三个服务：MySQL 8.4 LTS、Spring Boot 后端、nginx + Vue 构�
 - 可选观测栈：`docker compose --profile observability up -d db backend prometheus grafana`（Prometheus `127.0.0.1:9090`、Grafana `127.0.0.1:3000`，只绑本机；说明见[部署步骤](docs/部署步骤.md)）
 - 看日志：`docker compose logs -f backend`（或 `db`、`web`）
 
+> 存量 Compose 部署升级：项目名从 `pet-clinic` 改 `yuzhua` 会改变隐式卷名，先在 `.env` 设 `YUZHUA_MYSQL_VOLUME=pet-clinic_mysql_data`、`YUZHUA_UPLOADS_VOLUME=pet-clinic_uploads_data`，只起 db 跑完改名迁移再起后端；卷名与迁移步骤见[部署步骤](docs/部署步骤.md)。
+
 `.env` 含口令与 JWT 密钥，已被 `.gitignore` 忽略，不要提交。JWT 密钥可用 `openssl rand -base64 48` 生成，长度至少 32 字节。这套 compose 面向本机演示；生产部署仍看 [docs/部署步骤.md](docs/部署步骤.md) 第 7 节。
 
 ## 快速开始
@@ -192,7 +194,7 @@ Compose 起三个服务：MySQL 8.4 LTS、Spring Boot 后端、nginx + Vue 构�
 ```bash
 # 1. 建库导数据。01_schema.sql 自带 DROP/CREATE DATABASE，不要预先手建
 mysql -uroot -p < sql/01_schema.sql
-mysql -uroot -p pet_clinic < sql/02_data.sql
+mysql -uroot -p yuzhua < sql/02_data.sql
 
 # 2. 后端（8081，上下文 /api）。JWT 密钥没有默认值，未设置会启动失败
 export JWT_SECRET='dev-only-please-use-a-random-32-byte-secret'
@@ -223,7 +225,7 @@ cd frontend && npm install && npm run dev
 ```
 ├── sql/            01_schema.sql 建表 + 02_data.sql 种子数据（脱敏但贴近真实）+ migrations/ 增量迁移
 ├── backend/        Spring Boot 服务
-│   └── src/main/java/com/petclinic/
+│   └── src/main/java/com/yuzhua/
 │       ├── common/     Result / PageResult / BizException / 全局异常处理
 │       ├── config/     MVC、拦截器、MyBatis-Plus、Jackson、OpenAPI、WebSocket、配置属性
 │       ├── security/   JWT 工具、AuthInterceptor、WsHandshakeInterceptor、AccountGuard

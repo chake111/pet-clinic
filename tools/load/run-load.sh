@@ -2,7 +2,7 @@
 # =====================================================================
 #  k6 压测一键运行脚本 (Git Bash / Linux)
 #
-#  使用独立 compose 项目名 petclinicload, 不碰演示栈 pet-clinic 的容器和卷。
+#  使用独立 compose 项目名 yuzhuaload, 不碰演示栈 yuzhua 的容器和卷。
 #  流程:
 #    1) 启动 db + backend, 等待健康
 #    2) 导入 fixture.sql (100 只宠物 / 2 条排班 / 压测账号)
@@ -14,7 +14,7 @@
 # =====================================================================
 set -euo pipefail
 
-PROJECT=petclinicload
+PROJECT=yuzhuaload
 NETWORK="${PROJECT}_default"
 BASE_URL=http://backend:8081/api
 
@@ -40,9 +40,9 @@ mkdir -p "$EVIDENCE_DIR"
 
 # 干净 checkout 没有根 .env 时，compose.yaml 的 :? 必填变量会让 preflight 直接失败。
 # 压测栈是隔离的，这里提供测试专用默认值；外部已设置同名变量时优先使用外部值。
-export PETCLINIC_MYSQL_ROOT_PASSWORD="${PETCLINIC_MYSQL_ROOT_PASSWORD:-k6-root-password}"
-export PETCLINIC_DB_PASSWORD="${PETCLINIC_DB_PASSWORD:-k6-db-password}"
-export PETCLINIC_JWT_SECRET="${PETCLINIC_JWT_SECRET:-k6-load-test-jwt-secret-0123456789abcdef}"
+export YUZHUA_MYSQL_ROOT_PASSWORD="${YUZHUA_MYSQL_ROOT_PASSWORD:-k6-root-password}"
+export YUZHUA_DB_PASSWORD="${YUZHUA_DB_PASSWORD:-k6-db-password}"
+export YUZHUA_JWT_SECRET="${YUZHUA_JWT_SECRET:-k6-load-test-jwt-secret-0123456789abcdef}"
 
 # Docker Desktop + Git Bash: -v 的宿主路径用 Windows 形式, 容器内路径禁止被 MSYS 改写
 if command -v cygpath >/dev/null 2>&1; then
@@ -76,7 +76,7 @@ docker compose -p "$PROJECT" up -d --build --wait --wait-timeout 300 db backend
 
 echo "==> 导入 fixture.sql"
 docker compose -p "$PROJECT" exec -T db \
-  sh -c 'MYSQL_PWD="$MYSQL_ROOT_PASSWORD" mysql -uroot pet_clinic' \
+  sh -c 'MYSQL_PWD="$MYSQL_ROOT_PASSWORD" mysql -uroot yuzhua' \
   < "${LOAD_DIR}/fixture.sql" 2>&1 | tee "${EVIDENCE_DIR}/fixture.log"
 # mysql 成功导入时没有输出, 补一行标记, 避免 fixture.log 为空无法核对
 echo "fixture.sql 导入完成: schedule 9001=100 号, 9002=20 号, pet 90001..90100" \
@@ -121,7 +121,7 @@ echo "==> 执行 verify.sql"
 verify_rc=0
 set +e
 docker compose -p "$PROJECT" exec -T db \
-  sh -c 'MYSQL_PWD="$MYSQL_ROOT_PASSWORD" mysql -uroot pet_clinic' \
+  sh -c 'MYSQL_PWD="$MYSQL_ROOT_PASSWORD" mysql -uroot yuzhua' \
   < "${LOAD_DIR}/verify.sql" 2>&1 | tee "${EVIDENCE_DIR}/verify.log"
 verify_rc=${PIPESTATUS[0]}
 set -e

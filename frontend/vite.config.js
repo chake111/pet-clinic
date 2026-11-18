@@ -1,13 +1,27 @@
 import { fileURLToPath, URL } from 'node:url'
 import { defineConfig } from 'vite'
 import vue from '@vitejs/plugin-vue'
+import { BRAND } from './src/brand.js'
 
 // 后端 server.servlet.context-path 就是 /api，所以代理不重写路径，
 // 前端所有请求写成 /api/xxx 即可与生产部署（同域反代）保持一致。
 const BACKEND = process.env.VITE_BACKEND || 'http://127.0.0.1:8081'
 
+/** 把 index.html 的品牌占位符换成 brand.js 里的常量，dev 与 build 共用。 */
+function brandHtml() {
+  return {
+    name: 'brand-html',
+    transformIndexHtml: {
+      order: 'pre',
+      handler: (html) => html
+        .replaceAll('%BRAND_TITLE%', BRAND.title)
+        .replaceAll('%BRAND_DESCRIPTION%', BRAND.description)
+    }
+  }
+}
+
 export default defineConfig({
-  plugins: [vue()],
+  plugins: [brandHtml(), vue()],
   resolve: {
     alias: { '@': fileURLToPath(new URL('./src', import.meta.url)) }
   },

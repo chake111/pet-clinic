@@ -3,7 +3,7 @@ import { defineStore } from 'pinia'
 import * as adminApi from '@/api/admin'
 import { createSession } from '@/stores/session'
 
-const USER_KEY = 'pet_clinic_admin_user'
+const USER_KEY = 'yuzhua_admin_user'
 
 /**
  * 后台登录态。医生和管理员同属一套账号体系，共用这里的 token，

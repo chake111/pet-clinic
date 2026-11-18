@@ -7,7 +7,7 @@ import { execFileSync } from 'node:child_process'
 const configPath = resolve(process.argv[process.argv.indexOf('--config') + 1])
 const cfg = JSON.parse(readFileSync(configPath, 'utf8'))
 execFileSync(process.env.PYTHON || 'python', ['tools/qa_env.py', 'instance', '--config', configPath], { stdio: 'inherit' })
-assert.match(cfg.db, /^pet_clinic_test_[a-f0-9]{8}$/)
+assert.match(cfg.db, /^yuzhua_test_[a-f0-9]{8}$/)
 assert.equal(cfg.api, 'http://127.0.0.1:8082/api')
 const sql = q => execFileSync('mysql', ['--defaults-extra-file=' + cfg.mysqlDefaultsFile, '-BN', '--default-character-set=utf8mb4', '-e', q], { encoding: 'utf8' }).trim()
 const tokens = {}, results = []
