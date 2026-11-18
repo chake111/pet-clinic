@@ -31,7 +31,7 @@
 
 ### 截图脚本
 
-`tools/screenshots.mjs` 按 `tools/screenshots.manifest.json` 重拍 `docs/screenshots/` 全部 32 张，自动登录用户端 / 后台 / 医生三种角色，导航到页面后等待稳定选择器，再按 manifest 的 `capture` 模式截图：`viewport` 截首屏、`table` 定位表格或主卡片按目标高度裁切（问题表格使用自然高度）、`full` 保留整页但限制 2500 CSS 高度。退出前校验 PNG 尺寸、DPR、README 引用图高宽比与页面错误。
+`tools/screenshots.mjs` 按 `tools/screenshots.manifest.json` 重拍 `docs/screenshots/` 全部 32 张，自动登录用户端 / 后台 / 医生三种角色，导航到页面后等待稳定选择器，再按 manifest 的 `capture` 模式截图：`viewport` 截首屏、`table` 定位表格或主卡片按基线高度裁切、`full` 保留整页且高度必须与基线一致。退出前校验 PNG 宽/高/DPR、README 引用图高宽比与页面错误。基线于 2026-11-18 重定：旧图 20/21/23/28/29/30/33/41/42 因旧品牌或布局/列宽过期，按当前 UI 完整内容重定；31 因 DPR 取整差 1px。
 
 前置：
 
@@ -69,7 +69,7 @@ PLAYWRIGHT_PACKAGE='<全局 playwright 包路径>' node tools/screenshots.mjs
 完整环境变量示例见 [`docs/愈爪改名计划-20261118.md`](../docs/愈爪改名计划-20261118.md) 的 P5。
 
 ```bash
-# 只列出 32 项并校验旧图宽度/DPR，不启动浏览器
+# 只列出 32 项并校验 manifest 基线宽度/高度/DPR，不启动浏览器
 node tools/screenshots.mjs --dry-run
 
 # 全量重拍

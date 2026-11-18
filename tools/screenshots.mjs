@@ -3,9 +3,9 @@
  * 按 manifest 重拍 docs/screenshots/ 的品牌截图。
  *
  * 采集模式：
- *   viewport  旧图 CSS 视口大小，fullPage=false，只截首屏
- *   table     定位表格/主卡片元素，按旧图 CSS 高度裁切，宽度随元素自然宽
- *   full      fullPage 截图，仅用于整页页面，高度上限 2500 CSS
+ *   viewport  manifest 基线视口大小，fullPage=false，只截首屏
+ *   table     定位表格/主卡片元素，按基线 CSS 高度裁切，宽度随元素自然宽
+ *   full      fullPage 截图，整页高度必须与基线一致，上限 2500 CSS
  *
  * 前置：临时 MySQL 3307 + 后端 8081 + 前端 5197，演示数据已就绪。
  * Playwright 默认取 'playwright'，可用 PLAYWRIGHT_PACKAGE 指向全局安装；
@@ -331,7 +331,8 @@ async function main() {
       const widthError = Math.abs(size.width - targetWidth)
       const heightError = Math.abs(size.height - targetHeight)
       if (shot.capture === 'full') {
-        if (widthError > 2) throw new Error(`截图宽 ${size.width} 与目标 ${targetWidth} 误差超过 2px`)
+        if (widthError > 2) throw new Error(`截图宽 ${size.width} 与基线 ${targetWidth} 误差超过 2px`)
+        if (heightError > 2) throw new Error(`full 截图高 ${size.height} 与基线 ${targetHeight} 误差超过 2px`)
         if (size.height > FULL_MAX_CSS_HEIGHT * dsf) throw new Error(`full 截图高度 ${size.height}px 超过 ${FULL_MAX_CSS_HEIGHT} CSS 上限`)
       } else if (shot.capture === 'table') {
         if (widthError > Math.max(2, Math.round(targetWidth * 0.05))) {

@@ -409,7 +409,7 @@
       "capture": "full",
       "target": {
         "width": 880,
-        "height": 1144
+        "height": 1510
       }
     },
     {
@@ -484,7 +484,7 @@
       "capture": "full",
       "target": {
         "width": 1440,
-        "height": 1226
+        "height": 1901
       }
     },
     {
@@ -690,7 +690,7 @@
       "capture": "viewport",
       "target": {
         "width": 1512,
-        "height": 1857
+        "height": 1858
       }
     },
     {
@@ -843,7 +843,7 @@
       "capture": "full",
       "target": {
         "width": 1440,
-        "height": 1273
+        "height": 1901
       }
     },
     {
@@ -874,8 +874,9 @@
       "capture": "full",
       "target": {
         "width": 1440,
-        "height": 1273
+        "height": 1901
       }
     }
-  ]
+  ],
+  "baseline": "2026-11-18 重定：旧图 20/21/23/28/29/30/33/41/42 因旧品牌或布局/列宽已过期，按当前 UI 完整内容重定基线；31 因 DPR 取整差 1px。"
 }
