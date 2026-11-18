@@ -1,6 +1,7 @@
 <script setup>
 import brandLogo from '@/assets/logo.svg'
 import mascot from '@/assets/tuantuan-a-final.png'
+import { BRAND } from '@/brand.js'
 
 defineProps({
   staff: Boolean
@@ -10,9 +11,12 @@ defineProps({
 <template>
   <main class="login-scene">
     <header class="brand">
-      <router-link to="/" aria-label="宠物医院预约问诊系统首页">
+      <router-link to="/" :aria-label="BRAND.fullName + '首页'">
         <img class="brand-mark" :src="brandLogo" width="38" height="38" alt="" />
-        <span>宠物医院预约问诊系统</span>
+        <span class="brand-text">
+          <b>{{ BRAND.name }}</b>
+          <small>{{ BRAND.tagline }}</small>
+        </span>
       </router-link>
       <span class="edition">{{ staff ? '医院工作台' : '宠物健康，从这里开始' }}</span>
     </header>
@@ -63,6 +67,9 @@ defineProps({
 }
 .brand { display: flex; align-items: center; justify-content: space-between; gap: 16px; }
 .brand a { display: inline-flex; align-items: center; gap: 10px; font-size: 16px; font-weight: 600; }
+.brand-text { display: flex; flex-direction: column; min-width: 0; line-height: 1.25; }
+.brand-text b { font-size: 16px; font-weight: 600; }
+.brand-text small { font-size: 12px; font-weight: 400; color: var(--color-muted); white-space: nowrap; }
 .brand-mark { width: 38px; height: 38px; display: block; flex: none; }
 .edition { font-size: 14px; color: var(--color-muted); }
 .stage { flex: 1; display: grid; place-items: center; padding: 150px 0 28px; }
@@ -100,6 +107,7 @@ h1 { margin: 8px 0 10px; font-size: 28px; line-height: 1.3; font-weight: 650; le
   .login-scene { padding: 20px 20px max(20px, env(safe-area-inset-bottom)); }
   .brand { justify-content: center; }
   .brand a { font-size: 15px; }
+  .brand-text b { font-size: 15px; }
   .edition { display: none; }
   .stage { padding-top: 142px; }
   .login-card { padding: 42px 24px 24px; }

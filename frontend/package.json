@@ -1,9 +1,9 @@
 {
-  "name": "pet-clinic-frontend",
+  "name": "yuzhua-frontend",
   "version": "1.0.0",
   "private": true,
   "type": "module",
-  "description": "宠物医院预约问诊系统前端（用户端 + 管理后台，单工程双入口）",
+  "description": "愈爪|宠物医院预约与在线问诊平台前端（用户端 + 管理后台，单工程双入口）",
   "scripts": {
     "dev": "node -r ./esbuild-tmp-shim.cjs node_modules/vite/bin/vite.js",
     "build": "node -r ./esbuild-tmp-shim.cjs node_modules/vite/bin/vite.js build",
