@@ -1,1 +1,11 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" role="img" aria-labelledby="title"><title id="title">宠物医院问诊标志</title><path fill="#FF385C" fill-rule="evenodd" d="M24 34C26 30 26 23 28 19C30 14 34 15 39 18L47 23C49 25 51 25 54 24C61 23 67 23 74 24C77 25 79 25 81 23L89 18C94 15 98 14 100 19C102 23 102 30 104 34C114 43 120 53 120 65C120 84 105 98 86 98H57C55 98 54 99 52 100L39 109C36 111 33 110 34 106L35 99C35 97 34 96 32 95C17 91 8 79 8 65C8 53 14 43 24 34Z M52 65a7 7 0 1 0-14 0 7 7 0 1 0 14 0Z M90 65a7 7 0 1 0-14 0 7 7 0 1 0 14 0Z"/></svg>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" role="img" aria-labelledby="yuzhua-logo-title">
+  <title id="yuzhua-logo-title">愈爪标志</title>
+  <circle cx="64" cy="64" r="56" fill="#FF385C"/>
+  <g fill="#FFFFFF">
+    <ellipse cx="34" cy="43" rx="8" ry="11" transform="rotate(-20 34 43)"/>
+    <ellipse cx="51" cy="31" rx="8" ry="11.5" transform="rotate(-6 51 31)"/>
+    <ellipse cx="77" cy="31" rx="8" ry="11.5" transform="rotate(6 77 31)"/>
+    <ellipse cx="94" cy="43" rx="8" ry="11" transform="rotate(20 94 43)"/>
+    <path fill-rule="evenodd" d="M40 74C40 63 49 56 64 56C79 56 88 63 88 74C88 84 79 92 64 92C49 92 40 84 40 74ZM52 69.5H59.5V62.5H68.5V69.5H76V78.5H68.5V85.5H59.5V78.5H52Z"/>
+  </g>
+</svg>

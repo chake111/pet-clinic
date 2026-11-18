@@ -1,0 +1,881 @@
+{
+  "version": 1,
+  "description": "愈爪品牌截图清单。viewport 与 deviceScaleFactor 按旧图宽度/DPR 分组固定，file 与 docs/screenshots/ 原文件名一致。",
+  "base": "http://127.0.0.1:5197",
+  "roles": {
+    "client": {
+      "login": "/login",
+      "username": "zhangsan",
+      "password": "123456",
+      "landing": "/"
+    },
+    "admin": {
+      "login": "/admin/login",
+      "username": "admin",
+      "password": "123456",
+      "landing": "/admin/dashboard"
+    },
+    "doctor": {
+      "login": "/admin/login",
+      "username": "doctor11",
+      "password": "123456",
+      "landing": "/admin/appointments"
+    }
+  },
+  "screenshots": [
+    {
+      "file": "01-client-login.png",
+      "path": "/login",
+      "viewport": {
+        "width": 438,
+        "height": 960
+      },
+      "deviceScaleFactor": 2,
+      "role": "client",
+      "guest": true,
+      "waitFor": "h1:has-text(\"欢迎回来\")",
+      "assertText": [
+        "愈爪",
+        "宠物医院预约与在线问诊平台",
+        "欢迎回来"
+      ],
+      "capture": "viewport",
+      "target": {
+        "width": 876,
+        "height": 1920
+      }
+    },
+    {
+      "file": "02-client-register.png",
+      "path": "/register",
+      "viewport": {
+        "width": 438,
+        "height": 877
+      },
+      "deviceScaleFactor": 2,
+      "role": "client",
+      "guest": true,
+      "waitFor": "h1:has-text(\"注册宠物主人账号\")",
+      "assertText": [
+        "注册宠物主人账号",
+        "注册并登录",
+        "返回首页"
+      ],
+      "capture": "viewport",
+      "target": {
+        "width": 876,
+        "height": 1754
+      }
+    },
+    {
+      "file": "03-client-home.png",
+      "path": "/",
+      "viewport": {
+        "width": 430,
+        "height": 2184
+      },
+      "deviceScaleFactor": 1,
+      "role": "client",
+      "waitFor": "h1:has-text(\"为爱宠，找到合适的医生\")",
+      "assertText": [
+        "愈爪",
+        "就诊科室",
+        "推荐医生",
+        "公告与养宠科普"
+      ],
+      "capture": "viewport",
+      "target": {
+        "width": 430,
+        "height": 2184
+      }
+    },
+    {
+      "file": "04-client-doctors.png",
+      "path": "/doctors",
+      "viewport": {
+        "width": 430,
+        "height": 824
+      },
+      "deviceScaleFactor": 2,
+      "role": "client",
+      "waitFor": ".result article.doctor",
+      "assertText": [
+        "找医生",
+        "位医生",
+        "全部科室"
+      ],
+      "capture": "viewport",
+      "target": {
+        "width": 860,
+        "height": 1648
+      }
+    },
+    {
+      "file": "05-client-doctor.png",
+      "path": "/doctor/1",
+      "viewport": {
+        "width": 430,
+        "height": 818
+      },
+      "deviceScaleFactor": 2,
+      "role": "client",
+      "waitFor": "h1:has-text(\"陈明远\")",
+      "assertText": [
+        "擅长",
+        "医生简介",
+        "近期号源",
+        "就诊评价"
+      ],
+      "capture": "viewport",
+      "target": {
+        "width": 860,
+        "height": 1636
+      }
+    },
+    {
+      "file": "06-client-booking.png",
+      "path": "/book/1",
+      "viewport": {
+        "width": 430,
+        "height": 499
+      },
+      "deviceScaleFactor": 2,
+      "role": "client",
+      "waitFor": ".slot:not([disabled])",
+      "actions": [
+        {
+          "type": "click",
+          "selector": ".slot:not([disabled])"
+        },
+        {
+          "type": "click",
+          "selector": "label.pet:has-text(\"布丁\")"
+        },
+        {
+          "type": "fill",
+          "selector": "textarea[aria-label=\"症状描述\"]",
+          "value": "近两天饭后偶有干呕，精神尚可，想了解是否需要到院检查。"
+        }
+      ],
+      "assertText": [
+        "确认挂号",
+        "就诊时段",
+        "就诊宠物",
+        "症状描述"
+      ],
+      "capture": "viewport",
+      "target": {
+        "width": 860,
+        "height": 998
+      }
+    },
+    {
+      "file": "07-client-pets.png",
+      "path": "/me/pets",
+      "viewport": {
+        "width": 438,
+        "height": 904
+      },
+      "deviceScaleFactor": 2,
+      "role": "client",
+      "waitFor": "h1:has-text(\"宠物档案\")",
+      "assertText": [
+        "愈爪",
+        "宠物档案",
+        "布丁",
+        "奶糖"
+      ],
+      "capture": "viewport",
+      "target": {
+        "width": 876,
+        "height": 1808
+      }
+    },
+    {
+      "file": "08-client-orders.png",
+      "path": "/me/orders",
+      "viewport": {
+        "width": 430,
+        "height": 998
+      },
+      "deviceScaleFactor": 2,
+      "role": "client",
+      "waitFor": "article.order",
+      "assertText": [
+        "我的预约",
+        "待接诊",
+        "未支付",
+        "已支付"
+      ],
+      "capture": "viewport",
+      "target": {
+        "width": 860,
+        "height": 1996
+      }
+    },
+    {
+      "file": "09-client-consult.png",
+      "path": "/consult",
+      "viewport": {
+        "width": 438,
+        "height": 904
+      },
+      "deviceScaleFactor": 2,
+      "role": "client",
+      "waitFor": "a.row",
+      "assertText": [
+        "在线问诊",
+        "进行中",
+        "已结束"
+      ],
+      "capture": "viewport",
+      "target": {
+        "width": 876,
+        "height": 1808
+      }
+    },
+    {
+      "file": "10-client-consultroom.png",
+      "path": "/consult",
+      "viewport": {
+        "width": 430,
+        "height": 976
+      },
+      "deviceScaleFactor": 2,
+      "role": "client",
+      "waitFor": "a.row",
+      "actions": [
+        {
+          "type": "click",
+          "selector": "a.row:has-text(\"布丁\")"
+        },
+        {
+          "type": "waitFor",
+          "selector": "[aria-label=\"问诊消息\"]"
+        }
+      ],
+      "assertText": [
+        "布丁",
+        "刘恋",
+        "医生建议到院就诊",
+        "去预约挂号"
+      ],
+      "capture": "viewport",
+      "target": {
+        "width": 860,
+        "height": 1952
+      }
+    },
+    {
+      "file": "11-client-records.png",
+      "path": "/me/records",
+      "viewport": {
+        "width": 430,
+        "height": 884
+      },
+      "deviceScaleFactor": 2,
+      "role": "client",
+      "waitFor": "h1:has-text(\"病历处方\")",
+      "assertText": [
+        "病历处方",
+        "诊断",
+        "处方",
+        "查看病历"
+      ],
+      "capture": "viewport",
+      "target": {
+        "width": 860,
+        "height": 1768
+      }
+    },
+    {
+      "file": "12-client-consult-new.png",
+      "path": "/consult/new/11",
+      "viewport": {
+        "width": 430,
+        "height": 878
+      },
+      "deviceScaleFactor": 2,
+      "role": "client",
+      "waitFor": "label.pet",
+      "actions": [
+        {
+          "type": "click",
+          "selector": "label.pet:has-text(\"布丁\")"
+        },
+        {
+          "type": "fill",
+          "selector": "textarea[aria-label=\"症状描述\"]",
+          "value": "近两天饭后偶有干呕，精神尚可，想了解是否需要到院检查。"
+        }
+      ],
+      "assertText": [
+        "发起图文问诊",
+        "问诊宠物",
+        "症状描述",
+        "发起问诊"
+      ],
+      "capture": "viewport",
+      "target": {
+        "width": 860,
+        "height": 1756
+      }
+    },
+    {
+      "file": "13-client-pay.png",
+      "path": "/me/orders",
+      "viewport": {
+        "width": 430,
+        "height": 936
+      },
+      "deviceScaleFactor": 2,
+      "role": "client",
+      "waitFor": "article.order",
+      "actions": [
+        {
+          "type": "click",
+          "selector": "article.order:has-text(\"未支付\")"
+        },
+        {
+          "type": "waitFor",
+          "selector": "text=立即支付"
+        }
+      ],
+      "assertText": [
+        "就诊信息",
+        "病情描述",
+        "费用",
+        "立即支付"
+      ],
+      "capture": "viewport",
+      "target": {
+        "width": 860,
+        "height": 1872
+      }
+    },
+    {
+      "file": "14-client-review.png",
+      "path": "/me/orders",
+      "viewport": {
+        "width": 430,
+        "height": 876
+      },
+      "deviceScaleFactor": 2,
+      "role": "client",
+      "waitFor": "article.order",
+      "actions": [
+        {
+          "type": "click",
+          "selector": "div[role=\"tab\"]:has-text(\"已完成\")"
+        },
+        {
+          "type": "click",
+          "selector": "article.order button:has-text(\"评价\")"
+        },
+        {
+          "type": "waitFor",
+          "selector": "h1:has-text(\"评价本次就诊\")"
+        }
+      ],
+      "assertText": [
+        "评价本次就诊",
+        "综合评分",
+        "服务态度",
+        "诊疗效果",
+        "就诊体验"
+      ],
+      "capture": "viewport",
+      "target": {
+        "width": 860,
+        "height": 1752
+      }
+    },
+    {
+      "file": "20-admin-login.png",
+      "path": "/admin/login",
+      "viewport": {
+        "width": 440,
+        "height": 572
+      },
+      "deviceScaleFactor": 2,
+      "role": "admin",
+      "guest": true,
+      "waitFor": "h1:has-text(\"开启今天的守护\")",
+      "assertText": [
+        "愈爪",
+        "宠物医院预约与在线问诊平台",
+        "医院工作台"
+      ],
+      "capture": "full",
+      "target": {
+        "width": 880,
+        "height": 1144
+      }
+    },
+    {
+      "file": "21-admin-dashboard.png",
+      "path": "/admin/dashboard",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "deviceScaleFactor": 1,
+      "role": "admin",
+      "waitFor": "div.cv canvas",
+      "actions": [
+        {
+          "type": "wait",
+          "ms": 1200
+        }
+      ],
+      "assertText": [
+        "工作台",
+        "今日概览",
+        "预约量与营收趋势",
+        "预约状态分布",
+        "科室预约量",
+        "医生接诊量排行"
+      ],
+      "capture": "full",
+      "target": {
+        "width": 1440,
+        "height": 1149
+      }
+    },
+    {
+      "file": "22-admin-appointments.png",
+      "path": "/admin/appointments",
+      "viewport": {
+        "width": 708,
+        "height": 850
+      },
+      "deviceScaleFactor": 2,
+      "role": "admin",
+      "waitFor": ".el-table__row",
+      "assertText": [
+        "预约管理",
+        "预约列表",
+        "宠物 / 预约单号",
+        "操作"
+      ],
+      "capture": "table",
+      "target": {
+        "width": 1416,
+        "height": 900
+      },
+      "tableSelector": ".el-table"
+    },
+    {
+      "file": "23-admin-schedule.png",
+      "path": "/admin/schedule",
+      "viewport": {
+        "width": 1440,
+        "height": 1226
+      },
+      "deviceScaleFactor": 1,
+      "role": "admin",
+      "waitFor": ".el-table__row",
+      "assertText": [
+        "愈爪",
+        "排班管理",
+        "排班时段",
+        "新建时段"
+      ],
+      "capture": "full",
+      "target": {
+        "width": 1440,
+        "height": 1226
+      }
+    },
+    {
+      "file": "24-admin-doctors.png",
+      "path": "/admin/doctors",
+      "viewport": {
+        "width": 726,
+        "height": 841
+      },
+      "deviceScaleFactor": 2,
+      "role": "admin",
+      "waitFor": ".el-table__row",
+      "assertText": [
+        "医生管理",
+        "医生",
+        "科室",
+        "状态"
+      ],
+      "capture": "table",
+      "target": {
+        "width": 1452,
+        "height": 882
+      },
+      "tableSelector": ".el-table"
+    },
+    {
+      "file": "25-admin-records.png",
+      "path": "/admin/records",
+      "viewport": {
+        "width": 1440,
+        "height": 1122
+      },
+      "deviceScaleFactor": 1,
+      "role": "admin",
+      "waitFor": ".el-table__row",
+      "assertText": [
+        "愈爪",
+        "病历查询",
+        "病历列表",
+        "病历号",
+        "诊断"
+      ],
+      "capture": "table",
+      "target": {
+        "width": 1440,
+        "height": 722
+      },
+      "tableSelector": ".el-table"
+    },
+    {
+      "file": "26-admin-reviews.png",
+      "path": "/admin/reviews",
+      "viewport": {
+        "width": 780,
+        "height": 1428
+      },
+      "deviceScaleFactor": 2,
+      "role": "admin",
+      "waitFor": "article.rev",
+      "assertText": [
+        "评价管理",
+        "评价列表",
+        "综合",
+        "服务态度",
+        "诊疗效果"
+      ],
+      "capture": "table",
+      "target": {
+        "width": 1560,
+        "height": 2056
+      },
+      "tableSelector": ".page"
+    },
+    {
+      "file": "27-admin-notices.png",
+      "path": "/admin/notices",
+      "viewport": {
+        "width": 742,
+        "height": 733
+      },
+      "deviceScaleFactor": 2,
+      "role": "admin",
+      "waitFor": ".el-table__row",
+      "assertText": [
+        "公告科普",
+        "标题",
+        "类型",
+        "状态"
+      ],
+      "capture": "table",
+      "target": {
+        "width": 1484,
+        "height": 666
+      },
+      "tableSelector": ".el-table"
+    },
+    {
+      "file": "28-admin-users.png",
+      "path": "/admin/users",
+      "viewport": {
+        "width": 1184,
+        "height": 1000
+      },
+      "deviceScaleFactor": 2,
+      "role": "admin",
+      "waitFor": ".el-table__row",
+      "assertText": [
+        "宠物主人",
+        "手机号",
+        "性别",
+        "状态",
+        "注册时间",
+        "最近登录"
+      ],
+      "capture": "table",
+      "target": {
+        "width": 1772,
+        "height": 916
+      },
+      "tableSelector": ".el-table"
+    },
+    {
+      "file": "29-admin-pets.png",
+      "path": "/admin/pets",
+      "viewport": {
+        "width": 1224,
+        "height": 1000
+      },
+      "deviceScaleFactor": 2,
+      "role": "admin",
+      "waitFor": ".el-table__row",
+      "assertText": [
+        "宠物",
+        "性别 / 月龄",
+        "免疫",
+        "健康摘要",
+        "录入",
+        "主人"
+      ],
+      "capture": "table",
+      "target": {
+        "width": 1852,
+        "height": 1498
+      },
+      "tableSelector": ".el-table"
+    },
+    {
+      "file": "30-doctor-consult.png",
+      "path": "/admin/consult",
+      "viewport": {
+        "width": 1346,
+        "height": 1000
+      },
+      "deviceScaleFactor": 2,
+      "role": "doctor",
+      "waitFor": ".el-table__row",
+      "assertText": [
+        "患者",
+        "宠物",
+        "症状",
+        "会话状态",
+        "最近一条",
+        "时间",
+        "操作"
+      ],
+      "capture": "table",
+      "target": {
+        "width": 2096,
+        "height": 458
+      },
+      "tableSelector": ".el-table"
+    },
+    {
+      "file": "31-doctor-workbench.png",
+      "path": "/admin/appointments",
+      "viewport": {
+        "width": 756,
+        "height": 929
+      },
+      "deviceScaleFactor": 2,
+      "role": "doctor",
+      "waitFor": ".appt-row",
+      "actions": [
+        {
+          "type": "click",
+          "selector": ".appt-row:has-text(\"布丁\") button:has-text(\"继续接诊\")"
+        },
+        {
+          "type": "waitFor",
+          "selector": "h1:has-text(\"门诊病历\")"
+        },
+        {
+          "type": "waitFor",
+          "selector": "text=病历已保存"
+        }
+      ],
+      "assertText": [
+        "门诊病历",
+        "主人描述",
+        "诊断结论",
+        "病历已保存"
+      ],
+      "capture": "viewport",
+      "target": {
+        "width": 1512,
+        "height": 1857
+      }
+    },
+    {
+      "file": "32-doctor-consultroom.png",
+      "path": "/admin/consult",
+      "viewport": {
+        "width": 756,
+        "height": 904
+      },
+      "deviceScaleFactor": 2,
+      "role": "doctor",
+      "waitFor": ".el-table__row",
+      "actions": [
+        {
+          "type": "click",
+          "selector": "tr.el-table__row:has-text(\"布丁\") button:has-text(\"进入会话\")"
+        },
+        {
+          "type": "waitFor",
+          "selector": "[aria-label=\"问诊回复\"]"
+        }
+      ],
+      "assertText": [
+        "布丁",
+        "主人",
+        "病情资料",
+        "结束问诊"
+      ],
+      "capture": "viewport",
+      "target": {
+        "width": 1512,
+        "height": 1808
+      }
+    },
+    {
+      "file": "33-admin-consult-records.png",
+      "path": "/admin/consult-records",
+      "viewport": {
+        "width": 1362,
+        "height": 1000
+      },
+      "deviceScaleFactor": 2,
+      "role": "admin",
+      "waitFor": ".el-table__row",
+      "assertText": [
+        "宠物主人",
+        "宠物",
+        "接诊医生",
+        "症状",
+        "状态",
+        "处置",
+        "最近消息",
+        "操作"
+      ],
+      "capture": "table",
+      "target": {
+        "width": 2128,
+        "height": 794
+      },
+      "tableSelector": ".el-table"
+    },
+    {
+      "file": "35-doctor-my-schedule.png",
+      "path": "/admin/my-schedule",
+      "viewport": {
+        "width": 568,
+        "height": 800
+      },
+      "deviceScaleFactor": 2,
+      "role": "doctor",
+      "waitFor": ".slot-row",
+      "assertText": [
+        "我的排班",
+        "出诊安排",
+        "可预约"
+      ],
+      "capture": "table",
+      "target": {
+        "width": 1136,
+        "height": 652
+      },
+      "tableSelector": ".schedule-list"
+    },
+    {
+      "file": "36-doctor-summary.png",
+      "path": "/admin/consult",
+      "viewport": {
+        "width": 756,
+        "height": 904
+      },
+      "deviceScaleFactor": 2,
+      "role": "doctor",
+      "waitFor": ".el-table__row",
+      "actions": [
+        {
+          "type": "click",
+          "selector": "tr.el-table__row:has-text(\"布丁\") button:has-text(\"进入会话\")"
+        },
+        {
+          "type": "waitFor",
+          "selector": "[aria-label=\"问诊回复\"]"
+        },
+        {
+          "type": "click",
+          "selector": "button:has-text(\"结束问诊\")"
+        },
+        {
+          "type": "waitFor",
+          "selector": ".el-dialog"
+        },
+        {
+          "type": "fill",
+          "selector": ".el-dialog textarea",
+          "value": "近期有换粮情况，建议先恢复熟悉的食物，少量多餐并记录症状变化。若反复呕吐或精神变差，请及时到院检查。"
+        }
+      ],
+      "assertText": [
+        "结束问诊",
+        "确认结束",
+        "取消"
+      ],
+      "capture": "viewport",
+      "target": {
+        "width": 1512,
+        "height": 1808
+      }
+    },
+    {
+      "file": "41-admin-schedule-stopped-slot.png",
+      "path": "/admin/schedule",
+      "viewport": {
+        "width": 1440,
+        "height": 1273
+      },
+      "deviceScaleFactor": 1,
+      "role": "admin",
+      "waitFor": ".el-table__row",
+      "actions": [
+        {
+          "type": "hover",
+          "selector": "tr.el-table__row:has(.chip:text-is(\"停诊\")) .chip"
+        }
+      ],
+      "assertText": [
+        "愈爪",
+        "排班管理",
+        "停诊",
+        "恢复"
+      ],
+      "capture": "full",
+      "target": {
+        "width": 1440,
+        "height": 1273
+      }
+    },
+    {
+      "file": "42-admin-schedule-adjust-frozen.png",
+      "path": "/admin/schedule",
+      "viewport": {
+        "width": 1440,
+        "height": 1273
+      },
+      "deviceScaleFactor": 1,
+      "role": "admin",
+      "waitFor": ".el-table__row",
+      "actions": [
+        {
+          "type": "click",
+          "selector": "tr.el-table__row:has(.chip:text-is(\"停诊\")) button:has-text(\"调整\")"
+        },
+        {
+          "type": "waitFor",
+          "selector": ".el-dialog"
+        }
+      ],
+      "assertText": [
+        "调整排班",
+        "已有 2 条预约记录",
+        "仅可调整号源总数"
+      ],
+      "capture": "full",
+      "target": {
+        "width": 1440,
+        "height": 1273
+      }
+    }
+  ]
+}
