@@ -1,15 +1,15 @@
 # =====================================================
-# Pet Clinic 配置模板（生产/部署参考；本文件不会被 Spring Boot 直接加载）
+# 愈爪配置模板（生产/部署参考；本文件不会被 Spring Boot 直接加载）
 # =====================================================
 # 两种用法，任选其一：
 # 1. 环境变量（推荐；注意同名时命令行属性优先级更高，--petclinic.jwt.secret=xxx 会盖掉环境变量）：
 #      export DB_USERNAME=xxx
 #      export DB_PASSWORD=xxx
 #      export JWT_SECRET=your_very_long_secret_at_least_32_bytes
-#      java -jar pet-clinic-server.jar
+#      java -jar yuzhua-server.jar
 # 2. 复制本文件为 application-prod.yml（该文件名已被 .gitignore 忽略），
 #    填好后用 profile 启动：
-#      java -jar pet-clinic-server.jar --spring.profiles.active=prod
+#      java -jar yuzhua-server.jar --spring.profiles.active=prod
 #
 # 说明：
 # - 配置不生效时按优先级排查：命令行属性 > 环境变量 > config/ 外部文件 > jar 内默认值。
@@ -31,7 +31,7 @@ server:
 
 spring:
   application:
-    name: pet-clinic-server
+    name: yuzhua-server
   datasource:
     driver-class-name: com.mysql.cj.jdbc.Driver
     url: jdbc:mysql://127.0.0.1:3306/pet_clinic?useUnicode=true&characterEncoding=utf8&serverTimezone=Asia/Shanghai&useSSL=false&allowPublicKeyRetrieval=true&rewriteBatchedStatements=true
@@ -87,7 +87,11 @@ petclinic:
     # 定时清扫任务的多实例租约（秒）。远大于一轮耗时；实例崩溃后最多等这么久由其他实例接管，必须大于 0
     lease-seconds: 300
 
+yuzhua:
+  brand:
+    full-name: "愈爪|宠物医院预约与在线问诊平台"
+
 logging:
   level:
     root: info
-    com.petclinic: debug
+    com.yuzhua: debug

@@ -10,7 +10,7 @@ server:
 
 spring:
   application:
-    name: pet-clinic-server
+    name: yuzhua-server
   datasource:
     driver-class-name: com.mysql.cj.jdbc.Driver
     url: jdbc:mysql://127.0.0.1:3306/pet_clinic?useUnicode=true&characterEncoding=utf8&serverTimezone=Asia/Shanghai&useSSL=false&allowPublicKeyRetrieval=true&rewriteBatchedStatements=true
@@ -102,10 +102,14 @@ petclinic:
     # 耗时达到或超过该毫秒数的 MyBatis 语句打 WARN；0 表示关闭。计时包住整个 Executor 调用，含行锁等待和结果映射
     slow-sql-threshold-ms: 200
 
+yuzhua:
+  brand:
+    full-name: "愈爪|宠物医院预约与在线问诊平台"
+
 logging:
   level:
     root: info
-    com.petclinic: info
+    com.yuzhua: info
   pattern:
     # 追踪号紧跟在级别后面（TraceIdFilter 写入 MDC）：用户报障给的号能直接 grep 到那一行
     # 与紧随其后的堆栈；定时任务、WebSocket 回调没有请求上下文，这里显示为空
