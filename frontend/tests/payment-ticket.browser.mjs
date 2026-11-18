@@ -23,8 +23,8 @@ try {
       const errors = []
       page.on('pageerror', e => { errors.push(e.message); console.log('PAGE ERROR', e.message) })
       await context.addInitScript(() => {
-        localStorage.setItem('pet_clinic_client_token', 'isolated-browser-test')
-        localStorage.setItem('pet_clinic_client_user', JSON.stringify({ id: 1, nickname: '测试' }))
+        localStorage.setItem('yuzhua_client_token', 'isolated-browser-test')
+        localStorage.setItem('yuzhua_client_user', JSON.stringify({ id: 1, nickname: '测试' }))
       })
       let requests = 0, release
       const order = { id: 99, status: 0, payStatus: 0, orderNo: 'AP202610200028', amount: 60, petName: '奶糖', doctorName: '陈医生', queueNo: 6, appointmentDate: '2099-10-22', period: 1, startTime: '09:00:00', endTime: '12:00:00' }

@@ -3,7 +3,7 @@ import { defineStore } from 'pinia'
 import * as userApi from '@/api/user'
 import { createSession } from '@/stores/session'
 
-const USER_KEY = 'pet_clinic_client_user'
+const USER_KEY = 'yuzhua_client_user'
 
 /**
  * 用户端登录态。token 与展示用的用户信息都落 localStorage，
