@@ -1,4 +1,4 @@
-@startuml pet-clinic-core-classes
+@startuml yuzhua-core-classes
 skinparam defaultFontName Microsoft YaHei
 skinparam defaultFontSize 16
 skinparam classFontStyle bold
@@ -56,7 +56,7 @@ Appointment -[hidden]right- ConsultSession
 caption (a) 核心实体的业务关联
 @enduml
 
-@startuml pet-clinic-core-services
+@startuml yuzhua-core-services
 skinparam defaultFontName Microsoft YaHei
 skinparam defaultFontSize 16
 skinparam classFontStyle bold

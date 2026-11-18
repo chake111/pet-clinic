@@ -24,7 +24,7 @@
 
 ## 色彩与状态
 
-- 品牌标识采用 Rausch #ff385c；两端承载白字的实心主操作统一采用 #d92549（`--color-action`）。用户端由 `body.client-mode` 绑定，后台由 `body.admin-mode` 在 `styles/admin.css` 统一绑定同一组令牌；`AppointmentDetail` / `Workbench` 的两处页面级 `:deep` 覆写已被全局规则遮蔽，保留为过渡，待下一轮删除。业务状态使用独立语义色。（依据：`styles/main.css`、`styles/admin.css`、`utils/dict.js`）
+- 愈爪品牌标识采用 Rausch #ff385c；两端承载白字的实心主操作统一采用 #d92549（`--color-action`）。用户端由 `body.client-mode` 绑定，后台由 `body.admin-mode` 在 `styles/admin.css` 统一绑定同一组令牌；`AppointmentDetail` / `Workbench` 的两处页面级 `:deep` 覆写已被全局规则遮蔽，保留为过渡，待下一轮删除。业务状态使用独立语义色。（依据：`styles/main.css`、`styles/admin.css`、`utils/dict.js`）
 
 - 进行中用蓝、成功用绿、待办用橙、危险用红、终止用灰；状态胶囊带文字和前置圆点。（依据：`utils/dict.js`、`components/StatusChip.vue`）
 
