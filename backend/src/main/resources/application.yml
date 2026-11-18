@@ -13,7 +13,7 @@ spring:
     name: yuzhua-server
   datasource:
     driver-class-name: com.mysql.cj.jdbc.Driver
-    url: jdbc:mysql://127.0.0.1:3306/pet_clinic?useUnicode=true&characterEncoding=utf8&serverTimezone=Asia/Shanghai&useSSL=false&allowPublicKeyRetrieval=true&rewriteBatchedStatements=true
+    url: jdbc:mysql://127.0.0.1:3306/yuzhua?useUnicode=true&characterEncoding=utf8&serverTimezone=Asia/Shanghai&useSSL=false&allowPublicKeyRetrieval=true&rewriteBatchedStatements=true
     username: ${DB_USERNAME:root}
     password: ${DB_PASSWORD:123456}  # 开发默认值，生产必须通过环境变量覆盖
     hikari:
@@ -79,7 +79,9 @@ management:
       percentiles-histogram:
         http.server.requests: true
 
-petclinic:
+yuzhua:
+  brand:
+    full-name: "愈爪|宠物医院预约与在线问诊平台"
   # 必填，没有默认值：HMAC-SHA 密钥（算法随长度自动选：32B→HS256、48B→HS384），长度 >= 32 字节。
   # 启动时会拒绝空值、过短值和历史示例值；本地开发也要 export JWT_SECRET。
   jwt:
@@ -101,10 +103,6 @@ petclinic:
   observability:
     # 耗时达到或超过该毫秒数的 MyBatis 语句打 WARN；0 表示关闭。计时包住整个 Executor 调用，含行锁等待和结果映射
     slow-sql-threshold-ms: 200
-
-yuzhua:
-  brand:
-    full-name: "愈爪|宠物医院预约与在线问诊平台"
 
 logging:
   level:

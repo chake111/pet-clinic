@@ -2,7 +2,7 @@
 # 愈爪配置模板（生产/部署参考；本文件不会被 Spring Boot 直接加载）
 # =====================================================
 # 两种用法，任选其一：
-# 1. 环境变量（推荐；注意同名时命令行属性优先级更高，--petclinic.jwt.secret=xxx 会盖掉环境变量）：
+# 1. 环境变量（推荐；注意同名时命令行属性优先级更高，--yuzhua.jwt.secret=xxx 会盖掉环境变量）：
 #      export DB_USERNAME=xxx
 #      export DB_PASSWORD=xxx
 #      export JWT_SECRET=your_very_long_secret_at_least_32_bytes
@@ -34,7 +34,7 @@ spring:
     name: yuzhua-server
   datasource:
     driver-class-name: com.mysql.cj.jdbc.Driver
-    url: jdbc:mysql://127.0.0.1:3306/pet_clinic?useUnicode=true&characterEncoding=utf8&serverTimezone=Asia/Shanghai&useSSL=false&allowPublicKeyRetrieval=true&rewriteBatchedStatements=true
+    url: jdbc:mysql://127.0.0.1:3306/yuzhua?useUnicode=true&characterEncoding=utf8&serverTimezone=Asia/Shanghai&useSSL=false&allowPublicKeyRetrieval=true&rewriteBatchedStatements=true
     username: ${DB_USERNAME}
     password: ${DB_PASSWORD}          # ← 从环境变量注入；无默认值，未注入则启动失败
     hikari:
@@ -72,7 +72,9 @@ springdoc:
   api-docs:
     path: /v3/api-docs
 
-petclinic:
+yuzhua:
+  brand:
+    full-name: "愈爪|宠物医院预约与在线问诊平台"
   jwt:
     secret: ${JWT_SECRET}             # ← 从环境变量注入；无默认值；HMAC-SHA 密钥，长度 >= 32 字节（算法随长度自动选）
     expire-seconds: 604800
@@ -86,10 +88,9 @@ petclinic:
   scheduler:
     # 定时清扫任务的多实例租约（秒）。远大于一轮耗时；实例崩溃后最多等这么久由其他实例接管，必须大于 0
     lease-seconds: 300
-
-yuzhua:
-  brand:
-    full-name: "愈爪|宠物医院预约与在线问诊平台"
+  observability:
+    # 耗时达到或超过该毫秒数的 MyBatis 语句打 WARN；0 表示关闭
+    slow-sql-threshold-ms: 200
 
 logging:
   level:

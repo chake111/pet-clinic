@@ -10,7 +10,7 @@
 --  booked 只统计未取消 (status <> 3) 的订单; last_queue_no 取消不回退。
 -- =====================================================================
 
-USE `pet_clinic`;
+USE `yuzhua`;
 SET NAMES utf8mb4;
 
 SELECT

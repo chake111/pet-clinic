@@ -1,4 +1,4 @@
-name: pet-clinic
+name: yuzhua
 
 x-logging: &default-logging
   driver: json-file
@@ -11,10 +11,10 @@ services:
     image: mysql:8.4
     restart: unless-stopped
     environment:
-      MYSQL_ROOT_PASSWORD: ${PETCLINIC_MYSQL_ROOT_PASSWORD:?set PETCLINIC_MYSQL_ROOT_PASSWORD in .env}
-      MYSQL_DATABASE: pet_clinic
+      MYSQL_ROOT_PASSWORD: ${YUZHUA_MYSQL_ROOT_PASSWORD:?set YUZHUA_MYSQL_ROOT_PASSWORD in .env}
+      MYSQL_DATABASE: yuzhua
       MYSQL_USER: petapp
-      MYSQL_PASSWORD: ${PETCLINIC_DB_PASSWORD:?set PETCLINIC_DB_PASSWORD in .env}
+      MYSQL_PASSWORD: ${YUZHUA_DB_PASSWORD:?set YUZHUA_DB_PASSWORD in .env}
       TZ: Asia/Shanghai
     command:
       - --default-time-zone=+08:00
@@ -26,7 +26,7 @@ services:
       - ./sql/02_data.sql:/docker-entrypoint-initdb.d/02_data.sql:ro
     healthcheck:
       # 不只看 TCP 活着，还要确认初始化脚本真的建出了业务表
-      test: ["CMD-SHELL", 'MYSQL_PWD="$$MYSQL_PASSWORD" mysql -h 127.0.0.1 -u petapp -N -e "SELECT 1 FROM pet_clinic.doctor LIMIT 1"']
+      test: ["CMD-SHELL", 'MYSQL_PWD="$$MYSQL_PASSWORD" mysql -h 127.0.0.1 -u petapp -N -e "SELECT 1 FROM yuzhua.doctor LIMIT 1"']
       interval: 10s
       timeout: 5s
       retries: 12
@@ -38,14 +38,14 @@ services:
     build:
       context: ./backend
       dockerfile: Dockerfile
-    image: pet-clinic-backend:local
+    image: yuzhua-backend:local
     restart: unless-stopped
     environment:
-      SPRING_DATASOURCE_URL: "jdbc:mysql://db:3306/pet_clinic?useUnicode=true&characterEncoding=utf8&serverTimezone=Asia/Shanghai&useSSL=false&allowPublicKeyRetrieval=true&rewriteBatchedStatements=true"
+      SPRING_DATASOURCE_URL: "jdbc:mysql://db:3306/yuzhua?useUnicode=true&characterEncoding=utf8&serverTimezone=Asia/Shanghai&useSSL=false&allowPublicKeyRetrieval=true&rewriteBatchedStatements=true"
       DB_USERNAME: petapp
-      DB_PASSWORD: ${PETCLINIC_DB_PASSWORD:?set PETCLINIC_DB_PASSWORD in .env}
-      JWT_SECRET: ${PETCLINIC_JWT_SECRET:?set PETCLINIC_JWT_SECRET in .env}
-      PETCLINIC_UPLOAD_DIR: /app/uploads
+      DB_PASSWORD: ${YUZHUA_DB_PASSWORD:?set YUZHUA_DB_PASSWORD in .env}
+      JWT_SECRET: ${YUZHUA_JWT_SECRET:?set YUZHUA_JWT_SECRET in .env}
+      YUZHUA_UPLOAD_DIR: /app/uploads
       TZ: Asia/Shanghai
       JAVA_TOOL_OPTIONS: "-XX:MaxRAMPercentage=75.0 -Duser.timezone=Asia/Shanghai"
     volumes:
@@ -67,7 +67,7 @@ services:
     build:
       context: .
       dockerfile: deploy/web/Dockerfile
-    image: pet-clinic-web:local
+    image: yuzhua-web:local
     restart: unless-stopped
     ports:
       - "127.0.0.1:8088:80"
@@ -92,7 +92,7 @@ services:
     volumes:
       - ./deploy/observability/prometheus.yml:/etc/prometheus/prometheus.yml:ro
     ports:
-      - "127.0.0.1:${PETCLINIC_PROM_PORT:-9090}:9090"
+      - "127.0.0.1:${YUZHUA_PROM_PORT:-9090}:9090"
     depends_on:
       - backend
     security_opt:
@@ -103,13 +103,13 @@ services:
     image: grafana/grafana:11.3.1
     profiles: ["observability"]
     environment:
-      GF_SECURITY_ADMIN_PASSWORD: ${PETCLINIC_GRAFANA_PASSWORD:-admin}
+      GF_SECURITY_ADMIN_PASSWORD: ${YUZHUA_GRAFANA_PASSWORD:-admin}
       GF_USERS_ALLOW_SIGN_UP: "false"
     volumes:
       - ./deploy/observability/grafana/provisioning:/etc/grafana/provisioning:ro
       - ./deploy/observability/grafana/dashboards:/var/lib/grafana/dashboards:ro
     ports:
-      - "127.0.0.1:${PETCLINIC_GRAFANA_PORT:-3000}:3000"
+      - "127.0.0.1:${YUZHUA_GRAFANA_PORT:-3000}:3000"
     depends_on:
       - prometheus
     security_opt:

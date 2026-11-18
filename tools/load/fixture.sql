@@ -1,6 +1,6 @@
 -- =====================================================================
 --  k6 压测固定夹具 (可重复执行)
---  目标库: pet_clinic (compose 的 db 容器)
+--  目标库: yuzhua (compose 的 db 容器)
 --  约定: 全部使用固定 ID, 不依赖 02_data.sql 的种子数据 id;
 --        sys_user 9001 / pet 90001..90100 / doctor 9001 / department 9001
 --        schedule 9001 = 100 个号 (race), 9002 = 20 个号 (oversell)
@@ -8,7 +8,7 @@
 --        -> sys_user -> doctor -> department
 -- =====================================================================
 
-USE `pet_clinic`;
+USE `yuzhua`;
 SET NAMES utf8mb4;
 
 -- 1. 清掉上一轮压测留下的数据 (顺序不可颠倒)

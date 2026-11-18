@@ -54,23 +54,23 @@ public class JwtUtils {
         String secret = props.getJwt().getSecret();
         if (secret == null || secret.isBlank()) {
             throw new IllegalStateException(
-                    "petclinic.jwt.secret 未配置：请生成随机密钥并通过环境变量 JWT_SECRET 注入（不少于 32 字节）");
+                    "yuzhua.jwt.secret 未配置：请生成随机密钥并通过环境变量 JWT_SECRET 注入（不少于 32 字节）");
         }
         if (RETIRED_DEFAULTS.contains(secret.trim())) {
             throw new IllegalStateException(
-                    "petclinic.jwt.secret 仍是仓库内置的示例密钥：该密钥已公开，必须更换后再启动");
+                    "yuzhua.jwt.secret 仍是仓库内置的示例密钥：该密钥已公开，必须更换后再启动");
         }
         int length = secret.getBytes(StandardCharsets.UTF_8).length;
         if (length < 32) {
             throw new IllegalStateException(
-                    "petclinic.jwt.secret 长度不足：当前 " + length + " 字节，至少需要 32 字节");
+                    "yuzhua.jwt.secret 长度不足：当前 " + length + " 字节，至少需要 32 字节");
         }
     }
 
     private SecretKey key() {
         byte[] raw = props.getJwt().getSecret().getBytes(StandardCharsets.UTF_8);
         if (raw.length < 32) {
-            throw new IllegalStateException("petclinic.jwt.secret 长度必须不小于 32 字节");
+            throw new IllegalStateException("yuzhua.jwt.secret 长度必须不小于 32 字节");
         }
         return Keys.hmacShaKeyFor(raw);
     }

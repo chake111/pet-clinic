@@ -53,8 +53,8 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @AutoConfigureMockMvc
 @TestPropertySource(properties = {
-        // petclinic 前缀；JWT_SECRET 默认为空，这里必须显式给 >=32 字节的密钥
-        "petclinic.jwt.secret=it-integration-test-jwt-secret-0123456789abcdef",
+        // yuzhua 前缀；JWT_SECRET 默认为空，这里必须显式给 >=32 字节的密钥
+        "yuzhua.jwt.secret=it-integration-test-jwt-secret-0123456789abcdef",
         "spring.datasource.hikari.maximum-pool-size=50",
         "spring.datasource.hikari.connection-timeout=30000",
         "logging.level.com.yuzhua=WARN"
@@ -81,7 +81,7 @@ public abstract class MySqlITSupport {
     protected static final long FIRST_PET_ID = 90001L;
 
     private static final MySQLContainer<?> MYSQL = new MySQLContainer<>("mysql:8.0")
-            .withDatabaseName("pet_clinic")
+            .withDatabaseName("yuzhua")
             .withUsername("test")
             .withPassword("test")
             .withUrlParam("serverTimezone", "Asia/Shanghai")

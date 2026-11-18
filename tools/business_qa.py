@@ -38,7 +38,7 @@ OUT = None
 
 def config():
     c = json.loads(STATE.read_text())
-    assert re.fullmatch(r'pet_clinic_test_[a-f0-9]{8}', c['db'])
+    assert re.fullmatch(r'yuzhua_test_[a-f0-9]{8}', c['db'])
     assert c['api'] == 'http://127.0.0.1:8082/api'
     assert sql(c, 'SELECT DATABASE(),@@port') == c['db'] + '\t3307'
     grants = sql(c, 'SHOW GRANTS').splitlines()

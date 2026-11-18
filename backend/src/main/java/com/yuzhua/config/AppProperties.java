@@ -7,11 +7,11 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.validation.annotation.Validated;
 
 /**
- * 应用自定义配置，对应 application.yml 的 petclinic.* 节点。
+ * 应用自定义配置，对应 application.yml 的 yuzhua.* 节点。
  */
 @Data
 @Validated
-@ConfigurationProperties(prefix = "petclinic")
+@ConfigurationProperties(prefix = "yuzhua")
 public class AppProperties {
 
     private Jwt jwt = new Jwt();

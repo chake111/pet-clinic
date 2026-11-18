@@ -4,7 +4,7 @@
 -- 应用发布后，缺少 ver 声明的旧令牌一律被 AccountGuard 拒绝，等同于要求重新登录。
 --
 -- 回退：保留本列即可（旧版本应用不读取它）。若要彻底撤销旧令牌，
--- 不要回退本列，而是轮换 petclinic.jwt.secret。
+-- 不要回退本列，而是轮换 yuzhua.jwt.secret。
 
 ALTER TABLE `sys_user`
   ADD COLUMN `token_version` INT NOT NULL DEFAULT 1

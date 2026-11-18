@@ -1,7 +1,7 @@
 -- =====================================================================
---  宠物医院预约问诊系统 (单家宠物医院自用版)  pet_clinic
+--  愈爪|宠物医院预约与在线问诊平台 (单家宠物医院自用版)  yuzhua
 --  02 种子数据脚本   依赖先执行 01_schema.sql
---  执行: mysql -u root -p pet_clinic < 02_data.sql
+--  执行: mysql -u root -p yuzhua < 02_data.sql
 --
 --  演示账号 (密码统一 123456, BCrypt 强度10):
 --    用户端   zhangsan / lisi / wangwu / zhaoliu / sunqi   (zhouba 为已禁用示例)
@@ -20,7 +20,7 @@
 --       演示当天再导入本文件.
 -- =====================================================================
 
-USE `pet_clinic`;
+USE `yuzhua`;
 SET NAMES utf8mb4;
 
 -- 明文 123456 -> BCrypt 哈希, 已通过 BCrypt.checkpw 验证
@@ -98,8 +98,8 @@ INSERT INTO `doctor`
 -- 3. 后台账号 (管理员 + 医生登录位)
 -- =====================================================================
 INSERT INTO `admin_user` (`id`,`username`,`password`,`real_name`,`avatar`,`phone`,`email`,`role`,`doctor_id`,`status`) VALUES
-(1,'admin'    ,@pwd,'苏幼薇',NULL,'13900139000','admin@petclinic.cn'  ,'ADMIN',NULL,1),
-(2,'service01',@pwd,'前台客服',NULL,'13900139001','service@petclinic.cn','ADMIN',NULL,1);
+(1,'admin'    ,@pwd,'苏幼薇',NULL,'13900139000','admin@yuzhua.cn'  ,'ADMIN',NULL,1),
+(2,'service01',@pwd,'前台客服',NULL,'13900139001','service@yuzhua.cn','ADMIN',NULL,1);
 
 INSERT INTO `admin_user` (`username`,`password`,`real_name`,`phone`,`role`,`doctor_id`,`status`)
 SELECT CONCAT('doctor', LPAD(d.id, 2, '0')), @pwd, d.name, d.phone, 'DOCTOR', d.id, 1

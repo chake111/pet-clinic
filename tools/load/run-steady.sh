@@ -2,8 +2,8 @@
 # =====================================================================
 #  稳态读混合压测一键运行脚本 (Git Bash / Linux)
 #
-#  使用独立 compose 项目名 petclinicperf, 不碰演示栈 pet-clinic,
-#  也不复用 11-16 集成压测栈 petclinicload 的容器与卷。
+#  使用独立 compose 项目名 yuzhuaperf, 不碰演示栈 yuzhua,
+#  也不复用 11-16 集成压测栈 yuzhuaload 的容器与卷。
 #  流程:
 #    1) 以 observability profile 启动 db + backend + prometheus + grafana
 #       (不启动 web: 它与演示栈共用 127.0.0.1:8088)
@@ -18,7 +18,7 @@
 #    PRE_VUS       默认 30, preAllocatedVUs
 #    KEEP          默认 1, 保留栈供截图; KEEP=0 结束时自动 down -v
 #    EVIDENCE_DIR  默认 docs/test-evidence/20261116-observability, 可覆盖
-#    PETCLINIC_PROM_PORT / PETCLINIC_GRAFANA_PORT
+#    YUZHUA_PROM_PORT / YUZHUA_GRAFANA_PORT
 #                  宿主机端口, 只绑 127.0.0.1; 同一变量既控制 compose
 #                  端口映射, 也用于脚本抓取 targets 和打印地址
 #
@@ -27,7 +27,7 @@
 # =====================================================================
 set -euo pipefail
 
-PROJECT=petclinicperf
+PROJECT=yuzhuaperf
 NETWORK="${PROJECT}_default"
 BASE_URL=http://backend:8081/api
 
@@ -57,9 +57,9 @@ mkdir -p "$EVIDENCE_DIR"
 
 # 干净 checkout 没有根 .env 时, compose.yaml 的 :? 必填变量会让 preflight 直接失败。
 # 压测栈是隔离的, 这里提供测试专用默认值; 外部已设置同名变量时优先使用外部值。
-export PETCLINIC_MYSQL_ROOT_PASSWORD="${PETCLINIC_MYSQL_ROOT_PASSWORD:-k6-root-password}"
-export PETCLINIC_DB_PASSWORD="${PETCLINIC_DB_PASSWORD:-k6-db-password}"
-export PETCLINIC_JWT_SECRET="${PETCLINIC_JWT_SECRET:-k6-load-test-jwt-secret-0123456789abcdef}"
+export YUZHUA_MYSQL_ROOT_PASSWORD="${YUZHUA_MYSQL_ROOT_PASSWORD:-k6-root-password}"
+export YUZHUA_DB_PASSWORD="${YUZHUA_DB_PASSWORD:-k6-db-password}"
+export YUZHUA_JWT_SECRET="${YUZHUA_JWT_SECRET:-k6-load-test-jwt-secret-0123456789abcdef}"
 
 # Docker Desktop + Git Bash: -v 的宿主路径用 Windows 形式, 容器内路径禁止被 MSYS 改写
 if command -v cygpath >/dev/null 2>&1; then
@@ -72,8 +72,8 @@ cleanup() {
   local rc=$?
   if [[ "${KEEP:-1}" == "1" ]]; then
     echo "KEEP=1: 保留 ${PROJECT} 的容器与卷供截图"
-    echo "  Grafana:    http://127.0.0.1:${GRAFANA_HOST_PORT:-${PETCLINIC_GRAFANA_PORT:-3000}}"
-    echo "  Prometheus: http://127.0.0.1:${PROM_HOST_PORT:-${PETCLINIC_PROM_PORT:-9090}}/targets"
+    echo "  Grafana:    http://127.0.0.1:${GRAFANA_HOST_PORT:-${YUZHUA_GRAFANA_PORT:-3000}}"
+    echo "  Prometheus: http://127.0.0.1:${PROM_HOST_PORT:-${YUZHUA_PROM_PORT:-9090}}/targets"
     echo "  清理: docker compose -p ${PROJECT} --profile observability down -v"
   else
     echo "清理 ${PROJECT} 的容器与卷..."
@@ -97,13 +97,13 @@ docker compose -p "$PROJECT" --profile observability up -d --build --wait --wait
 
 # .env 里的端口覆盖不会自动进入当前 shell；以 compose 实际发布的端口为准
 PROM_HOST_PORT="$(docker compose -p "$PROJECT" port prometheus 9090 2>/dev/null | sed 's/.*://' | tr -d '\r' || true)"
-PROM_HOST_PORT="${PROM_HOST_PORT:-${PETCLINIC_PROM_PORT:-9090}}"
+PROM_HOST_PORT="${PROM_HOST_PORT:-${YUZHUA_PROM_PORT:-9090}}"
 GRAFANA_HOST_PORT="$(docker compose -p "$PROJECT" port grafana 3000 2>/dev/null | sed 's/.*://' | tr -d '\r' || true)"
-GRAFANA_HOST_PORT="${GRAFANA_HOST_PORT:-${PETCLINIC_GRAFANA_PORT:-3000}}"
+GRAFANA_HOST_PORT="${GRAFANA_HOST_PORT:-${YUZHUA_GRAFANA_PORT:-3000}}"
 
 echo "==> 导入 fixture.sql"
 docker compose -p "$PROJECT" exec -T db \
-  sh -c 'MYSQL_PWD="$MYSQL_ROOT_PASSWORD" mysql -uroot pet_clinic' \
+  sh -c 'MYSQL_PWD="$MYSQL_ROOT_PASSWORD" mysql -uroot yuzhua' \
   < "${LOAD_DIR}/fixture.sql" 2>&1 | tee "${EVIDENCE_DIR}/fixture.log"
 # mysql 成功导入时没有输出, 补一行标记, 避免 fixture.log 为空无法核对
 echo "fixture.sql 导入完成: schedule 9001=100 号, 9002=20 号, pet 90001..90100" \
@@ -158,10 +158,10 @@ else
 const fs = require("fs");
 const data = JSON.parse(fs.readFileSync(process.argv[1], "utf8"));
 const up = (data.data && data.data.activeTargets || []).some(
-  (t) => t.labels && t.labels.job === "pet-clinic-backend" && t.health === "up");
+  (t) => t.labels && t.labels.job === "yuzhua-backend" && t.health === "up");
 process.exit(up ? 0 : 1);
 ' "${EVIDENCE_DIR}/prometheus-targets.json"; then
-    echo "错误: Prometheus 没有健康的 pet-clinic-backend target" >&2
+    echo "错误: Prometheus 没有健康的 yuzhua-backend target" >&2
     targets_rc=1
   fi
 fi

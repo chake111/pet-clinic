@@ -14,7 +14,7 @@ const argConfig = argv.find(a => a.startsWith('--config='))?.slice('--config='.l
   ?? (configFlag >= 0 ? argv[configFlag + 1] : null)
 const configPath = resolve(argConfig ?? process.env.PETQA_CONFIG ?? 'runtime.json')
 const cfg = JSON.parse(readFileSync(configPath, 'utf8'))
-assert.match(cfg.db, /^pet_clinic_test_[a-f0-9]{8}$/)
+assert.match(cfg.db, /^yuzhua_test_[a-f0-9]{8}$/)
 assert.equal(cfg.api, 'http://127.0.0.1:8082/api')
 const sql = query => execFileSync('mysql', ['--defaults-extra-file=' + cfg.mysqlDefaultsFile,
   '-BN', '--default-character-set=utf8mb4', '-e', query], { encoding: 'utf8' }).trim()

@@ -1,5 +1,5 @@
 -- =====================================================================
---  宠物医院预约问诊系统 (单家宠物医院自用版)  pet_clinic
+--  愈爪|宠物医院预约与在线问诊平台 (单家宠物医院自用版)  yuzhua
 --  01 建表脚本   MySQL 8.0 / InnoDB / utf8mb4
 --  执行: mysql -u root -p < 01_schema.sql
 --
@@ -11,9 +11,9 @@
 --    admin_user: role=DOCTOR 时 1─1 doctor；1─N notice（发布留痕 publish_by）
 -- =====================================================================
 
-DROP DATABASE IF EXISTS `pet_clinic`;
-CREATE DATABASE `pet_clinic` DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci;
-USE `pet_clinic`;
+DROP DATABASE IF EXISTS `yuzhua`;
+CREATE DATABASE `yuzhua` DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci;
+USE `yuzhua`;
 
 SET NAMES utf8mb4;
 
