@@ -118,4 +118,8 @@ services:
 
 volumes:
   mysql_data:
+    # 存量 compose 部署升级时设为旧项目卷名 pet-clinic_mysql_data，先把旧数据挂回来再跑库迁移；
+    # 新装保持默认 yuzhua_mysql_data。Docker 不支持重命名卷，详见 docs/部署步骤.md。
+    name: ${YUZHUA_MYSQL_VOLUME:-yuzhua_mysql_data}
   uploads_data:
+    name: ${YUZHUA_UPLOADS_VOLUME:-yuzhua_uploads_data}

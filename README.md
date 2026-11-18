@@ -185,6 +185,8 @@ Compose 起三个服务：MySQL 8.4 LTS、Spring Boot 后端、nginx + Vue 构�
 - 可选观测栈：`docker compose --profile observability up -d db backend prometheus grafana`（Prometheus `127.0.0.1:9090`、Grafana `127.0.0.1:3000`，只绑本机；说明见[部署步骤](docs/部署步骤.md)）
 - 看日志：`docker compose logs -f backend`（或 `db`、`web`）
 
+> 存量 Compose 部署升级：项目名从 `pet-clinic` 改 `yuzhua` 会改变隐式卷名，先在 `.env` 设 `YUZHUA_MYSQL_VOLUME=pet-clinic_mysql_data`、`YUZHUA_UPLOADS_VOLUME=pet-clinic_uploads_data`，只起 db 跑完改名迁移再起后端；卷名与迁移步骤见[部署步骤](docs/部署步骤.md)。
+
 `.env` 含口令与 JWT 密钥，已被 `.gitignore` 忽略，不要提交。JWT 密钥可用 `openssl rand -base64 48` 生成，长度至少 32 字节。这套 compose 面向本机演示；生产部署仍看 [docs/部署步骤.md](docs/部署步骤.md) 第 7 节。
 
 ## 快速开始
