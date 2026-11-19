@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <title>愈爪 · 钩子静帧</title>
+  <link rel="stylesheet" href="stills.css">
+  <!--
+    重建：在本目录执行 ./render.sh
+    画面使用 docs/screenshots/10-client-consultroom.png 的真实像素，
+    光标叠在「去预约挂号」上。不改产品代码。
+  -->
+  <script>
+    document.documentElement.dataset.shot = new URLSearchParams(location.search).get("shot") || "a";
+  </script>
+</head>
+<body>
+  <section class="shot shot-a" aria-label="A 特写推进">
+    <aside class="rail">
+      <div class="brand">
+        <img src="../../frontend/src/assets/logo.svg" alt="">
+        <div>
+          <strong>愈爪</strong>
+          <span>图文问诊</span>
+        </div>
+      </div>
+      <div class="hook">
+        <p>先问清，<br>再挂号</p>
+        <i class="bar"></i>
+      </div>
+    </aside>
+    <div class="phone">
+      <div class="screen">
+        <div class="reel">
+          <div class="crop">
+            <img class="plate" alt="宠物主人问诊里的建议到院卡片，光标停在去预约挂号" src="../../docs/screenshots/10-client-consultroom.png">
+            <div class="cursor" aria-hidden="true">
+              <svg viewBox="0 0 32 32" width="48" height="48">
+                <path d="M4 1.4 L4 26.4 L11.1 19.6 L17.4 29.8 L21.8 27.6 L15.4 17.4 L26.2 17 Z" fill="#1a1a1a" stroke="#ffffff" stroke-width="1.6" stroke-linejoin="round"/>
+              </svg>
+              <i class="ring"></i>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="shot shot-b" aria-label="B 短句砸点">
+    <div class="copy">
+      <div class="brand">
+        <img src="../../frontend/src/assets/logo.svg" alt="">
+        <div>
+          <strong>愈爪</strong>
+          <span>图文问诊</span>
+        </div>
+      </div>
+      <p class="smash">
+        <span>先问清，</span>
+        <span>再挂号<em>。</em></span>
+      </p>
+      <p class="kicker"><span>建议到院</span><i>·</i><b>点卡片去预约</b></p>
+      <p class="stamp">YUZHUA</p>
+    </div>
+    <div class="phone">
+      <div class="screen">
+        <div class="reel">
+          <div class="slice header"><img class="plate" alt="" src="../../docs/screenshots/10-client-consultroom.png"></div>
+          <div class="slice msgs">
+            <div class="shift">
+              <img class="plate" alt="建议到院卡片，光标停在去预约挂号" src="../../docs/screenshots/10-client-consultroom.png">
+              <div class="cursor" aria-hidden="true">
+                <svg viewBox="0 0 32 32" width="48" height="48">
+                  <path d="M4 1.4 L4 26.4 L11.1 19.6 L17.4 29.8 L21.8 27.6 L15.4 17.4 L26.2 17 Z" fill="#1a1a1a" stroke="#ffffff" stroke-width="1.6" stroke-linejoin="round"/>
+                </svg>
+                <i class="ring"></i>
+              </div>
+            </div>
+          </div>
+          <div class="slice comp"><div class="shift"><img class="plate" alt="" src="../../docs/screenshots/10-client-consultroom.png"></div></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="shot shot-c" aria-label="C 墨底换气">
+    <div class="copy">
+      <div class="brand">
+        <svg viewBox="0 0 128 128" aria-hidden="true">
+          <circle cx="64" cy="64" r="56" fill="#ffffff"/>
+          <g fill="#222222">
+            <ellipse cx="34" cy="43" rx="8" ry="11" transform="rotate(-20 34 43)"/>
+            <ellipse cx="51" cy="31" rx="8" ry="11.5" transform="rotate(-6 51 31)"/>
+            <ellipse cx="77" cy="31" rx="8" ry="11.5" transform="rotate(6 77 31)"/>
+            <ellipse cx="94" cy="43" rx="8" ry="11" transform="rotate(20 94 43)"/>
+            <path fill-rule="evenodd" d="M40 74C40 63 49 56 64 56C79 56 88 63 88 74C88 84 79 92 64 92C49 92 40 84 40 74ZM52 69.5H59.5V62.5H68.5V69.5H76V78.5H68.5V85.5H59.5V78.5H52Z"/>
+          </g>
+        </svg>
+        <div>
+          <strong>愈爪</strong>
+          <span>图文问诊</span>
+        </div>
+      </div>
+      <p class="smash">
+        <span>先问清，</span>
+        <span>再挂号<em>。</em></span>
+      </p>
+      <p class="pill">建议到院<i>·</i>去预约挂号</p>
+      <p class="url">yuzhua-petclinic.top/demo</p>
+    </div>
+    <div class="phone">
+      <div class="screen">
+        <div class="reel">
+          <div class="slice header"><img class="plate" alt="" src="../../docs/screenshots/10-client-consultroom.png"></div>
+          <div class="slice msgs">
+            <div class="shift">
+              <img class="plate" alt="建议到院卡片，光标停在去预约挂号" src="../../docs/screenshots/10-client-consultroom.png">
+              <div class="cursor" aria-hidden="true">
+                <svg viewBox="0 0 32 32" width="48" height="48">
+                  <path d="M4 1.4 L4 26.4 L11.1 19.6 L17.4 29.8 L21.8 27.6 L15.4 17.4 L26.2 17 Z" fill="#1a1a1a" stroke="#ffffff" stroke-width="1.6" stroke-linejoin="round"/>
+                </svg>
+                <i class="ring"></i>
+              </div>
+            </div>
+          </div>
+          <div class="slice comp"><div class="shift"><img class="plate" alt="" src="../../docs/screenshots/10-client-consultroom.png"></div></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="shot shot-sheet" aria-label="三方向对照">
+    <div class="sheet-copy">
+      <div class="sheet-row">
+        <div class="sheet-head">
+          <div class="brand">
+            <img src="../../frontend/src/assets/logo.svg" alt="">
+            <div>
+              <strong>愈爪</strong>
+              <span>钩子静帧</span>
+            </div>
+          </div>
+          <p class="sheet-kicker">讲法 A · 同一签名时刻</p>
+          <h1 class="sheet-title">先问清，<br>再挂号<em>。</em></h1>
+        </div>
+        <article class="cap a">
+          <b>A</b>
+          <h2>特写推进</h2>
+          <p>手机出血推进，建议到院卡片和红按钮是英雄，字留在边上。</p>
+        </article>
+      </div>
+      <article class="cap b">
+        <b>B</b>
+        <h2>短句砸点</h2>
+        <p>「先问清，再挂号」做成巨字砸在浅粉场上，手机是旁边的物件。</p>
+      </article>
+      <article class="cap c">
+        <b>C</b>
+        <h2>墨底换气</h2>
+        <p>墨底托住白字和白手机，画面里只有动作红在响。</p>
+      </article>
+    </div>
+    <div class="stills">
+      <img src="out/dir-a-closeup.png" alt="A 特写推进">
+      <img src="out/dir-b-typepunch.png" alt="B 短句砸点">
+      <img src="out/dir-c-inkfield.png" alt="C 墨底换气">
+    </div>
+  </section>
+</body>
+</html>
