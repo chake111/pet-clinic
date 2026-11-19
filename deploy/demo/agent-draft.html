@@ -1,0 +1,703 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="light">
+  <meta name="theme-color" content="#f7f7f7">
+  <title>愈爪演示 · 宠物医院预约与在线问诊</title>
+  <meta name="description" content="愈爪是单家宠物医院的预约与在线图文问诊。宠主、医生、管理三端可直接进入，不用注册。演示账号 zhangsan、doctor01、admin，密码 Yuzhua@2026。">
+  <link rel="icon" href="agent-assets/logo.svg" type="image/svg+xml">
+  <style>
+    :root {
+      --ink: #222222;
+      --body: #3f3f3f;
+      --muted: #6a6a6a;
+      --canvas: #ffffff;
+      --paper: #f7f7f7;
+      --strong: #f2f2f2;
+      --line: #ebebeb;
+      --line-strong: #dddddd;
+      --border: #c1c1c1;
+      --action: #d92549;
+      --action-hover: #c71e40;
+      --action-active: #b51b39;
+      --soft: #fff1f4;
+      --radius: 16px;
+      --radius-sm: 8px;
+      --ease: cubic-bezier(.2, 0, 0, 1);
+      --font: Inter, "Airbnb Cereal VF", -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+    }
+
+    * { box-sizing: border-box; }
+
+    html { overflow-x: clip; }
+
+    body {
+      margin: 0;
+      background: var(--paper);
+      color: var(--ink);
+      font-family: var(--font);
+      font-size: 16px;
+      line-height: 1.7;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    img { max-width: 100%; height: auto; }
+
+    a { color: inherit; text-decoration: none; }
+
+    p { margin: 0; text-wrap: pretty; }
+
+    h1, h2, h3 {
+      margin: 0;
+      font-weight: 700;
+      line-height: 1.3;
+      text-wrap: balance;
+    }
+
+    ::selection { background: #ffd1da; color: var(--ink); }
+
+    :focus-visible {
+      outline: 2px solid var(--ink);
+      outline-offset: 3px;
+    }
+
+    .skip {
+      position: absolute;
+      left: 16px;
+      top: 0;
+      transform: translateY(-120%);
+      z-index: 5;
+      min-height: 44px;
+      padding: 10px 14px;
+      background: var(--ink);
+      color: #fff;
+      border-radius: var(--radius-sm);
+    }
+
+    .skip:focus { transform: none; top: 12px; }
+
+    .wrap {
+      width: min(1080px, calc(100% - 32px));
+      margin-inline: auto;
+      padding-bottom: 48px;
+    }
+
+    .top {
+      display: flex;
+      align-items: center;
+      min-height: 72px;
+      padding: 16px 0 8px;
+    }
+
+    .lockup {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      min-height: 44px;
+    }
+
+    .lockup img { width: 40px; height: 40px; display: block; flex: none; }
+
+    .lockup-text { display: flex; flex-direction: column; line-height: 1.35; }
+
+    .lockup-name { font-size: 18px; font-weight: 700; }
+
+    .lockup-tag { font-size: 15px; color: var(--body); }
+
+    main { display: flex; flex-direction: column; gap: 16px; }
+
+    .sheet {
+      background: var(--canvas);
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      padding: 28px 20px 32px;
+    }
+
+    .eyebrow {
+      margin: 0 0 10px;
+      font-size: 15px;
+      line-height: 1.7;
+      color: var(--body);
+    }
+
+    h1 { font-size: 32px; letter-spacing: -0.02em; }
+
+    h1 .ln { display: block; }
+
+    .lead {
+      margin-top: 14px;
+      max-width: 38em;
+      color: var(--body);
+      font-size: 16px;
+      line-height: 1.7;
+    }
+
+    .roles {
+      list-style: none;
+      margin: 18px 0 0;
+      padding: 0;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .roles a {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      min-height: 48px;
+      padding: 8px 12px;
+      border: 1px solid var(--line-strong);
+      border-radius: 12px;
+      background: var(--canvas);
+      font-size: 16px;
+      line-height: 1.5;
+    }
+
+    .rk { flex: none; width: 4.5em; font-weight: 600; }
+
+    .rv { flex: 1; min-width: 0; color: var(--body); }
+
+    .chev { flex: none; color: var(--muted); }
+
+    .cta {
+      display: flex;
+      flex-direction: column;
+      align-items: stretch;
+      gap: 8px;
+      margin-top: 18px;
+    }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 48px;
+      padding: 0 18px;
+      border-radius: var(--radius-sm);
+      border: 1px solid transparent;
+      font: 600 16px/1.2 var(--font);
+      cursor: pointer;
+      text-align: center;
+    }
+
+    .btn-primary { background: var(--action); border-color: var(--action); color: #fff; }
+
+    .btn-secondary { background: var(--canvas); border-color: var(--border); color: var(--ink); }
+
+    .btn:active { transform: scale(.985); }
+
+    .note {
+      margin: 0;
+      max-width: 22em;
+      font-size: 15px;
+      line-height: 1.7;
+      color: var(--body);
+    }
+
+    .facts {
+      margin-top: 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      max-width: 40em;
+      font-size: 16px;
+      line-height: 1.7;
+      color: var(--body);
+    }
+
+    .facts strong { color: var(--ink); font-weight: 600; }
+
+    .pw {
+      font-weight: 700;
+      color: var(--ink);
+      background: var(--strong);
+      border-radius: 6px;
+      padding: 0 6px;
+      white-space: nowrap;
+    }
+
+
+    .hero {
+      display: grid;
+      gap: 28px;
+    }
+
+    .hero-visual {
+      margin: 0;
+      background: var(--paper);
+      border-radius: 12px;
+      padding: 16px 16px 12px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .hero-visual img {
+      width: min(280px, 100%);
+      border-radius: 24px;
+      border: 1px solid var(--line-strong);
+      background: #fff;
+    }
+
+    figcaption {
+      font-size: 15px;
+      line-height: 1.7;
+      color: var(--body);
+    }
+
+    .hero-visual figcaption { text-align: center; }
+
+    h2 { font-size: 24px; margin-bottom: 8px; }
+
+    h2 .ln { display: block; }
+
+    h3 { font-size: 18px; margin-bottom: 6px; }
+
+    .intro {
+      max-width: 40em;
+      color: var(--body);
+      font-size: 16px;
+      line-height: 1.7;
+    }
+
+    .end { margin-top: 28px; }
+
+    .end .btn { margin-top: 12px; }
+
+    .shot {
+      margin: 14px 0 0;
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      overflow-x: auto;
+      max-width: 100%;
+      background: var(--paper);
+      line-height: 0;
+      scrollbar-width: thin;
+    }
+
+    .shot img { display: block; width: 100%; height: auto; }
+
+    .admin-shot { width: min(100%, 720px); }
+
+    .doctor-shot img {
+      mask-image: linear-gradient(90deg, #000 0 86%, transparent 94%);
+    }
+
+    .end-figure { margin: 14px 0 0; }
+
+    .end-figure .shot { margin: 0; }
+
+    .end-figure figcaption { margin-top: 8px; }
+
+    .pan-hint { display: none; }
+
+    .pair {
+      margin-top: 20px;
+      display: grid;
+      gap: 22px;
+    }
+
+    .pair figure { margin: 0; }
+
+    .pair img {
+      width: min(100%, 340px);
+      border-radius: 20px;
+      border: 1px solid var(--line-strong);
+      display: block;
+      background: #fff;
+    }
+
+    .pair figcaption { margin-top: 8px; max-width: 34em; }
+
+    .film .btn { margin-top: 18px; }
+
+    .acct-list { margin: 16px 0 0; padding: 0; list-style: none; }
+
+    .acct {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
+      gap: 0 12px;
+      align-items: center;
+      min-height: 48px;
+      padding: 12px 0;
+      border-top: 1px solid var(--line);
+      font-size: 16px;
+      line-height: 1.5;
+    }
+
+    .acct .who { font-weight: 600; }
+
+    .acct .id { color: var(--body); }
+
+    .acct .hint {
+      grid-column: 1 / -1;
+      color: var(--body);
+      font-size: 15px;
+      line-height: 1.7;
+    }
+
+    .acct .go { font-weight: 600; }
+
+    .pw-row {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 10px 12px;
+      margin-top: 16px;
+      font-size: 16px;
+      line-height: 1.7;
+    }
+
+    .rules {
+      margin: 18px 0 0;
+      padding: 0;
+      list-style: none;
+    }
+
+    .rules li {
+      padding: 12px 0;
+      border-top: 1px solid var(--line);
+      font-size: 16px;
+      line-height: 1.7;
+      color: var(--body);
+    }
+
+    .rules strong { color: var(--ink); font-weight: 600; }
+
+    .built-list {
+      margin: 16px 0 0;
+      padding: 0;
+      list-style: none;
+    }
+
+    .built-list li {
+      padding: 14px 0;
+      border-top: 1px solid var(--line);
+      font-size: 16px;
+      line-height: 1.7;
+      color: var(--body);
+    }
+
+    .built-list strong { color: var(--ink); font-weight: 600; }
+
+    .stack-line {
+      margin-top: 16px;
+      max-width: 40em;
+      font-size: 16px;
+      line-height: 1.7;
+      color: var(--body);
+    }
+
+    .mascot {
+      margin: 20px 0 0;
+    }
+
+    .mascot img { width: min(100%, 460px); display: block; }
+
+    .foot {
+      padding: 28px 4px 8px;
+      color: var(--body);
+      font-size: 15px;
+      line-height: 1.7;
+    }
+
+    .foot strong { color: var(--ink); font-weight: 700; }
+
+    .sr-only {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      padding: 0;
+      margin: -1px;
+      overflow: hidden;
+      clip: rect(0, 0, 0, 0);
+      white-space: nowrap;
+      border: 0;
+    }
+
+    @media (min-width: 960px) {
+      .sheet { padding: 36px 36px 40px; }
+
+      h1 { font-size: 44px; }
+
+      .hero {
+        grid-template-columns: minmax(0, 1fr) 300px;
+        gap: 48px;
+        align-items: center;
+      }
+
+      .cta {
+        flex-direction: row;
+        flex-wrap: wrap;
+        align-items: flex-start;
+        gap: 12px 20px;
+      }
+
+      .cta .btn { width: auto; }
+
+      .pair {
+        grid-template-columns: 1fr 1fr;
+        gap: 28px;
+      }
+    }
+
+    @media (max-width: 959px) {
+      .cta .btn,
+      .end .btn,
+      .film .btn,
+      .pw-row .btn { width: 100%; }
+
+      .keep { display: block; }
+
+      .pan-hint {
+        display: block;
+        margin: 8px 0 0;
+        font-size: 15px;
+        line-height: 1.7;
+        color: var(--body);
+      }
+
+      .doctor-shot,
+      .admin-shot { width: 100%; }
+
+      .doctor-shot img,
+      .admin-shot img {
+        width: 720px;
+        max-width: none;
+      }
+    }
+
+    @media (hover: hover) and (pointer: fine) {
+      .btn-primary:hover { background: var(--action-hover); border-color: var(--action-hover); }
+      .btn-secondary:hover,
+      .roles a:hover,
+      .acct:hover .go { border-color: var(--ink); }
+      .roles a:hover { border-color: var(--ink); }
+      .acct:hover .go { text-decoration: underline; text-underline-offset: 3px; }
+    }
+
+    .btn-primary:active { background: var(--action-active); border-color: var(--action-active); }
+
+    @media (prefers-reduced-motion: reduce) {
+      .btn:active { transform: none; }
+    }
+
+    @media (forced-colors: active) {
+      .btn { border: 1px solid ButtonText; }
+    }
+  </style>
+</head>
+<body>
+  <a class="skip" href="#content">跳到正文</a>
+  <div class="wrap" id="top">
+    <header class="top">
+      <a class="lockup" href="#top">
+        <img src="agent-assets/logo.svg" width="40" height="40" alt="愈爪标志">
+        <span class="lockup-text">
+          <span class="lockup-name">愈爪</span>
+          <span class="lockup-tag">宠物医院预约与在线问诊</span>
+        </span>
+      </a>
+    </header>
+
+    <main id="content">
+      <section class="sheet" aria-labelledby="hero-title">
+        <div class="hero">
+          <div class="hero-copy">
+            <p class="eyebrow">2027 届全栈作品 · 单家宠物医院</p>
+            <h1 id="hero-title">
+              <span class="ln">宠主挂号、问诊</span>
+              <span class="ln">医生接诊、写病历</span>
+              <span class="ln">管理员看全院</span>
+            </h1>
+            <p class="lead">愈爪是单家宠物医院的预约和问诊。三端同一套数据，不用注册。</p>
+            <ul class="roles">
+              <li>
+                <a href="/login?demo=user">
+                  <span class="rk">宠主端</span>
+                  <span class="rv">选号、问诊、病历与评价</span>
+                  <svg class="chev" viewBox="0 0 16 16" width="16" height="16" aria-hidden="true"><path d="M6 3.5 10.5 8 6 12.5" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                </a>
+              </li>
+              <li>
+                <a href="/admin/login?demo=doctor&redirect=/admin/my-schedule">
+                  <span class="rk">医生端</span>
+                  <span class="rv">排班、接诊、写病历</span>
+                  <svg class="chev" viewBox="0 0 16 16" width="16" height="16" aria-hidden="true"><path d="M6 3.5 10.5 8 6 12.5" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                </a>
+              </li>
+              <li>
+                <a href="/admin/login?demo=admin&redirect=/admin/dashboard">
+                  <span class="rk">管理端</span>
+                  <span class="rv">号源、公告、评价、看板</span>
+                  <svg class="chev" viewBox="0 0 16 16" width="16" height="16" aria-hidden="true"><path d="M6 3.5 10.5 8 6 12.5" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                </a>
+              </li>
+            </ul>
+            <div class="cta">
+              <a class="btn btn-primary" href="https://www.bilibili.com/video/BV1placeholder" target="_blank" rel="noopener noreferrer">看 90 秒演示<span class="sr-only">，在 B 站打开</span></a>
+              <div>
+                <a class="btn btn-secondary" href="/login?demo=user" aria-describedby="slow-note">进入宠主端</a>
+                <p class="note" id="slow-note">完整系统首次加载较慢，建议 Wi-Fi / 桌面打开</p>
+              </div>
+            </div>
+            <div class="facts">
+              <p>演示账号：宠主 <strong>zhangsan</strong>，医生 <strong>doctor01</strong>，管理 <strong>admin</strong>。密码都是 <strong class="pw">Yuzhua@2026</strong>。</p>
+              <p>每日 04:00（北京时间）重置。<span class="keep">数据全部虚构，管理端删除已禁用。</span></p>
+            </div>
+          </div>
+          <figure class="hero-visual">
+            <img src="agent-assets/client-home.webp" width="430" height="860" alt="宠主端首页：可以搜索医生，就诊科室有宠物内科、外科、皮肤科、眼科、口腔科和影像检验科，下面是推荐医生陈明远" fetchpriority="high" decoding="async">
+            <figcaption>宠主端首页：搜索、科室、推荐医生</figcaption>
+          </figure>
+        </div>
+      </section>
+
+      <section class="sheet" aria-labelledby="ends-title">
+        <h2 id="ends-title"><span class="ln">医生端的会话</span><span class="ln">管理端的看板</span></h2>
+        <p class="intro">宠主端在上一屏。下面是医生的问诊列表，以及管理员的工作台。若停在登录页，填该端账号，密码是 Yuzhua@2026。</p>
+
+        <article class="end">
+          <h3>医生端</h3>
+          <p class="intro">问诊列表从左往右是患者、宠物、症状和状态。下面这张是列表左侧，能读到王五的小灰、张三的布丁和奶糖，以及症状摘要。医生账号 doctor01 进入后打开「我的排班」，页面上的医生是陈明远。</p>
+          <a class="btn btn-secondary" href="/admin/login?demo=doctor&redirect=/admin/my-schedule" aria-describedby="slow-note">进入医生端</a>
+          <figure class="end-figure">
+            <div class="shot doctor-shot">
+              <img src="agent-assets/doctor-consult.webp" width="1000" height="458" alt="医生端问诊列表左侧：患者王五的宠物小灰、张三的布丁和奶糖，以及各自的症状摘要" loading="lazy" decoding="async">
+            </div>
+            <figcaption>问诊列表左侧：患者、宠物、症状。</figcaption>
+            <p class="pan-hint">左右滑动可以看清患者和症状。</p>
+          </figure>
+        </article>
+
+        <article class="end">
+          <h3>管理端</h3>
+          <p class="intro">工作台汇总今日预约、今日营收和医生在线，下面是预约趋势、状态分布、科室预约量和医生接诊排行。这些数字来自虚构数据，每天会重置。管理账号 admin 进入后打开工作台，页面上显示为苏幼薇。</p>
+          <a class="btn btn-secondary" href="/admin/login?demo=admin&redirect=/admin/dashboard" aria-describedby="slow-note">进入管理端</a>
+          <figure class="end-figure">
+            <div class="shot admin-shot">
+              <img src="agent-assets/admin-dashboard.webp" width="720" height="575" alt="管理端工作台：今日预约、今日营收、医生在线，以及预约趋势、预约状态分布、科室预约量和医生接诊排行" loading="lazy" decoding="async">
+            </div>
+            <figcaption>工作台：今日概览、趋势、状态和科室预约量。</figcaption>
+            <p class="pan-hint">左右滑动可以看清看板。</p>
+          </figure>
+        </article>
+      </section>
+
+      <section class="sheet film" aria-labelledby="film-title">
+        <h2 id="film-title"><span class="ln">用 90 秒看完</span><span class="ln">预约和问诊</span></h2>
+        <p class="intro">完整路径在 B 站。下面两张是宠主端里的确认挂号和在线问诊：先选日期和时段，再在问诊里看到进行中的会话和到院建议。</p>
+        <div class="pair">
+          <figure>
+            <img src="agent-assets/client-booking.webp" width="430" height="499" alt="宠主端确认挂号：医生陈明远，今天 11 月 18 日有 32 个号，底栏是布丁的下午时段和 80 元到院问诊费" loading="lazy" decoding="async">
+            <figcaption>确认挂号。选好日期和时段后，底栏提交。这一单是布丁，医生陈明远，到院问诊费 80 元。</figcaption>
+          </figure>
+          <figure>
+            <img src="agent-assets/client-consult.webp" width="438" height="490" alt="宠主端在线问诊：刘恋与布丁的会话进行中，摘要里有建议到院；奶糖的会话已结束" loading="lazy" decoding="async">
+            <figcaption>在线问诊。进行中的那条是布丁，会话里有到院建议；奶糖的会话已经结束。</figcaption>
+          </figure>
+        </div>
+        <a class="btn btn-primary" href="https://www.bilibili.com/video/BV1placeholder" target="_blank" rel="noopener noreferrer">看 90 秒演示<span class="sr-only">，在 B 站打开</span></a>
+      </section>
+
+      <section class="sheet" aria-labelledby="acct-title">
+        <h2 id="acct-title">三个账号，密码相同</h2>
+        <p class="intro">不用自己注册，也不用在登录页里找账号。点某一端若停在登录页，填对应账号和下面的密码。</p>
+        <ul class="acct-list">
+          <li>
+            <a class="acct" href="/login?demo=user">
+              <span class="who">宠主端</span>
+              <span class="go">进入</span>
+              <span class="id">zhangsan</span>
+              <span class="hint">页面上显示张三。可以挂号、图文问诊、看病历和评价。</span>
+            </a>
+          </li>
+          <li>
+            <a class="acct" href="/admin/login?demo=doctor&redirect=/admin/my-schedule">
+              <span class="who">医生端</span>
+              <span class="go">进入</span>
+              <span class="id">doctor01</span>
+              <span class="hint">页面上是陈明远。进入后打开「我的排班」。</span>
+            </a>
+          </li>
+          <li>
+            <a class="acct" href="/admin/login?demo=admin&redirect=/admin/dashboard">
+              <span class="who">管理端</span>
+              <span class="go">进入</span>
+              <span class="id">admin</span>
+              <span class="hint">页面上显示苏幼薇。进入后打开工作台。</span>
+            </a>
+          </li>
+        </ul>
+        <div class="pw-row">
+          <p>三个账号的密码都是 <strong class="pw" id="pw">Yuzhua@2026</strong></p>
+          <button type="button" class="btn btn-secondary" id="copy-pw">复制密码</button>
+          <p id="copy-live" class="sr-only" role="status"></p>
+        </div>
+        <ul class="rules">
+          <li><strong>每天重置。</strong>每天 04:00（北京时间）演示数据回到初始状态。前一天的修改不会保留。</li>
+          <li><strong>全部虚构。</strong>宠物、病历、对话和看板数字都是编的，不是真实医院。</li>
+          <li><strong>删除已禁用。</strong>管理端的删除在网关被关掉，不会真正删掉数据。</li>
+          <li><strong>首次会慢一点。</strong>完整系统首次加载较慢，建议 Wi-Fi / 桌面打开。</li>
+        </ul>
+      </section>
+
+      <section class="sheet" aria-labelledby="built-title">
+        <h2 id="built-title">已经接通的六件事</h2>
+        <ol class="built-list">
+          <li><strong>挂号不会因为重试多占一个号。</strong>选宠物、选时段、写病情，症状图最多 6 张。同一次提交重复发送，仍然只占一个号。号源靠一条带条件的更新防止超卖。</li>
+          <li><strong>支付是模拟的。</strong>确认后记为已支付，不走真实支付渠道。满 30 分钟没付，订单取消，号源退回。</li>
+          <li><strong>图文问诊不收费、不占号。</strong>消息走 WebSocket，有文字和图片，能看到已送达和已读。</li>
+          <li><strong>医生可以建议到院。</strong>会话里发出一张卡片，宠主点进去就去挂这位医生的号。</li>
+          <li><strong>病历和问诊小结是分开的。</strong>病历写主诉、检查、诊断、处方和医嘱。线上问诊结束时可以另留一段书面结论，确诊仍要到院。</li>
+          <li><strong>评价一次打三项。</strong>综合、服务态度、诊疗效果都要打，可以匿名，医生可以公开回复。</li>
+        </ol>
+        <p class="stack-line">Spring Boot 3、Vue 3、MySQL、WebSocket、Docker Compose。用户端和后台在同一个 Vue 工程里。2027 届作品，目标是中小厂的全栈实习。</p>
+        <figure class="mascot">
+          <img src="agent-assets/tuantuan.webp" width="680" height="340" alt="吉祥物团团，一只戴着珊瑚色项圈、趴着休息的奶油色垂耳小狗" loading="lazy" decoding="async">
+          <figcaption>团团，愈爪的吉祥物。登录页上也能见到。</figcaption>
+        </figure>
+      </section>
+    </main>
+
+    <footer class="foot">
+      <p><strong>愈爪</strong> · 宠物医院预约与在线问诊平台</p>
+      <p>数据每日 04:00（北京时间）重置，全部虚构。管理端删除已在网关禁用。</p>
+    </footer>
+  </div>
+  <script>
+    (function () {
+      var btn = document.getElementById('copy-pw');
+      var live = document.getElementById('copy-live');
+      var pw = document.getElementById('pw');
+      if (!btn || !pw) return;
+      var label = btn.textContent;
+      btn.addEventListener('click', function () {
+        var text = pw.textContent;
+        function ok() {
+          btn.textContent = '已复制';
+          if (live) live.textContent = '密码已复制';
+          window.setTimeout(function () { btn.textContent = label; }, 2000);
+        }
+        function fallback() {
+          var range = document.createRange();
+          range.selectNodeContents(pw);
+          var sel = window.getSelection();
+          sel.removeAllRanges();
+          sel.addRange(range);
+          if (live) live.textContent = '已选中密码，可以手动复制';
+        }
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+          navigator.clipboard.writeText(text).then(ok, fallback);
+        } else {
+          fallback();
+        }
+      });
+    })();
+  </script>
+</body>
+</html>
