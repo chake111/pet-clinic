@@ -1,69 +1,59 @@
-# 愈爪在线演示落地页 · 首版稿说明
+# 愈爪在线演示落地页 · 说明
 
-只做了一个方向，文件是 `deploy/demo/agent-draft.html`。样式和脚本都写在这一份里，图片在 `deploy/demo/agent-assets/`。没有改前端、后端、网关，也没有改 `deploy/demo/index.html`（仓库里没有这个文件）。
+成稿仍是 `deploy/demo/agent-draft.html`。过程候选和方向卡在 `.oil-ui/demo-landing/`（仓库已忽略，不进 PR）。没有改应用代码，也没有改 `deploy/demo/index.html`。
 
-参考路径 `.oil-ui/demo-landing/index.html` 不在本仓库，稿子按 `docs/design.md` 和 `frontend/src/styles/main.css` 单独做，没有照着另一份落地页改。
+## 视觉北极星
 
-## 设计方向
+整页是一张已经取出的挂号单。第一眼是白纸和扒在纸沿上的团团，阅读从纸上的三行主诉开始，唯一的章是珊瑚色的「看 90 秒演示」。
 
-灰底白纸，三行标题。
+这句用来取舍：能印在这张纸上的留下，要另起一张功能卡的删掉。
 
-- 页面底 `#f7f7f7`，内容是白卡片、1px 发丝线和 16px 圆角，跟用户端的中性面一致。
-- 珊瑚 `#ff385c` 只出现在标志上。实心按钮用动作色 `#d92549`，白字对比度沿用设计约定里的 4.87:1。
-- 第一屏标题就是三端：宠主挂号、问诊 / 医生接诊、写病历 / 管理员看全院。主按钮是「看 90 秒演示」，「进入宠主端」是二级，旁边写明首次加载较慢。
-- 字体栈与 `main.css` 相同：Inter / Airbnb Cereal VF / PingFang SC / Microsoft YaHei。不引外部字体，也不引 CDN。
-- 正文 16px、行高 1.7；说明和图注 15px、行高 1.7。按钮高 48px。
+方向从三个概念里选出（号源挂号单、前台柜台、候诊叫号）。叫号把团团写成患者，退回。前台并排三块屏幕会回到等权重截图，退回。假的排队号不进成稿，三秒要读到三端，不读一个没有出处的号码。
 
-## 占位和后续要接上的
+高级感在这里是：一张纸、一种字重对比（40/700 对 16）、纸外大留白、色相只有墨和一枚动作红。简洁是删掉首版那些等权重描边行，不是把字号磨小。
 
-1. **B 站视频还是占位链接。** 页上两处「看 90 秒演示」都指向 `https://www.bilibili.com/video/BV1placeholder`。这不是一支真实视频。90 秒成片上传后，把这两处 `href` 换成真实 BV。页面正文没有写「占位」或「未接入」。
-2. **一键登录的接收页还没做。** 三个入口已经按约定写成站根相对链接，接收页上线后可以沿用：
-   - 宠主端 `/login?demo=user`
-   - 医生端 `/admin/login?demo=doctor&redirect=/admin/my-schedule`
-   - 管理端 `/admin/login?demo=admin&redirect=/admin/dashboard`
-   页面写的是：若停在登录页，用页上的账号和密码。没有把自动登录说成已经完成。
-3. **密码用的是公网演示约定 `Yuzhua@2026`。** 本地种子和 README 里的统一密码是 `123456`，不要把落地页改回种子密码。
+## 相对首版删掉了什么
 
-## 素材从哪来、怎么裁
+- 三行带框、带箭头、权重相同的入口卡片。三端改成同一张纸上的三行栏位，左边是端，右边是账号。
+- 首屏右侧的手机截图。截图挪到下一张纸，首屏只留纸、狗和字。
+- 灰底圆角卡片、第二颗实心按钮、技术栈横条，以及六条工程说明。那些说明仍在仓库 README。
+- 首屏里重复出现的重置说明只留纸的底栏和页脚各一次。
 
-| 成品 | 来源 | 加工 |
-| --- | --- | --- |
-| `logo.svg` | `frontend/src/assets/logo.svg` | 原文件复制，728 字节 |
-| `tuantuan.webp` | `frontend/src/assets/tuantuan-a-final.png`（1774×887，RGBA） | 等比缩到 680×340，保留透明，WebP quality 85 |
-| `client-home.webp` | `docs/screenshots/03-client-home.png`（430×2184） | 裁顶部 `(0,0,430,860)`，不缩放，WebP quality 78 |
-| `doctor-consult.webp` | `docs/screenshots/30-doctor-consult.png`（2096×458） | 裁左侧 `(0,0,1000,458)`，WebP quality 80 |
-| `admin-dashboard.webp` | `docs/screenshots/21-admin-dashboard.png`（1440×1149） | 宽缩到 720，高按 1149×720/1440 = 574.5，四舍五入为 575，WebP quality 75 |
-| `client-booking.webp` | `docs/screenshots/06-client-booking.png`（860×998） | 整张缩到宽 430（430×499），作预约海报 |
-| `client-consult.webp` | `docs/screenshots/09-client-consult.png`（876×1808） | 先裁顶部 876×980（标题和两条会话，下面大段是空白），再缩到宽 438（438×490），作问诊海报 |
+品牌感来自团团压住纸的上边线，以及整页只有一枚 `#d92549` 的章。`#ff385c` 只留在标志和项圈上，不铺底、不做标题。
 
-医生列表的右缘落在「会话状态」列中间，会切到半个「会」。文件仍是规定的 1000×458。页面上用 CSS 遮罩从 86% 淡到 94%，淡出发生在症状列和状态列之间的空档，症状正文留着，切掉的字不再露出来。
+## 字体、色彩、动效
 
-手机宽度装不下 1000 和 720 的整图。390 视口里这两张在卡片内部横向滚动（图宽 720），页面本身 `scrollWidth` 仍等于 390。图下有一句「左右滑动可以看清……」。桌面宽度不出现这句。
+字体栈与 `frontend/src/styles/main.css` 相同，不引外部字体。正文 16px / 1.7，说明 15px / 1.7。按钮高 48px，文字链至少 44px。挂号单用直角和 1px `#222` 外框，无投影。这和产品界面的 16px 圆角不同：纸是演示页自己的物件，截图仍是产品界面。
 
-首屏主图是宠主首页，`fetchpriority="high"`。医生列表、管理看板、两张海报、团团都是 `loading="lazy"`。
+进入时纸上移 8px，180ms。往下滚时，宠主首页在视口里由遮罩揭开，缩放从 1.12 回到 1（CSS `animation-timeline: view()`）。其余区块滚入时上移 12px，只播一次。`prefers-reduced-motion` 时全部直接到位。没有引入 GSAP：成稿必须是单文件、无 CDN，滚动叙事用平台的 scroll-timeline，不另放库文件。
 
-## 图片体积
+## 仍是占位
 
-全部图片合计 **99218 字节（96.9 KB）**，低于 150 KB。
+1. 两处「看 90 秒演示」的地址仍是 `https://www.bilibili.com/video/BV1placeholder`。成片上传后替换。页面上不写「占位」。
+2. 一键登录接收页还没做。三个入口仍是：
+   - `/login?demo=user`
+   - `/admin/login?demo=doctor&redirect=/admin/my-schedule`
+   - `/admin/login?demo=admin&redirect=/admin/dashboard`
+   纸上写了：若停在登录页，用页上的账号，密码是 `Yuzhua@2026`。
+3. 密码是公网演示的 `Yuzhua@2026`，不是本地种子的 `123456`。
 
-| 文件 | 体积 | 是否达标 |
-| --- | --- | --- |
-| `tuantuan.webp` | 18.1 KB | 吉祥物 ≤30 KB |
-| `client-home.webp` | 26.4 KB | 三张截图各 ≤40 KB |
-| `doctor-consult.webp` | 17.4 KB | 同上 |
-| `admin-dashboard.webp` | 12.4 KB | 同上 |
-| `client-booking.webp` | 12.0 KB | 计入 150 KB 总额 |
-| `client-consult.webp` | 9.9 KB | 同上 |
-| `logo.svg` | 0.7 KB | 同上 |
-| 合计 | 96.9 KB | ≤150 KB |
+## 素材
 
-## 落地页视口截图
+图片沿用上一版加工结果，体积没变。合计 96.9 KB。吉祥物 18.1 KB。三张主截图 26.4 / 17.4 / 12.4 KB。医生列表右缘的遮罩仍从 86% 淡到 94%，切掉的「会」不露出。手机上医生列表和管理看板在纸内横向滑动，页面本身不溢出。
 
-用本机 headless Chrome 打开本地静态服务上的 `agent-draft.html`（`http://127.0.0.1:8765/agent-draft.html`），`deviceScaleFactor` 为 1，只截视口，不是整页长图。
+## 视口截图
+
+headless Chrome，`deviceScaleFactor` 1，只截视口。
 
 | 文件 | 视口 |
 | --- | --- |
 | `deploy/demo/agent-shots/viewport-1440x900.png` | 1440×900 |
 | `deploy/demo/agent-shots/viewport-390x844.png` | 390×844 |
 
-两个视口都查过：`documentElement.scrollWidth === clientWidth`，没有横向溢出。标题各行的高度等于一行的 line-height。390 视口里逐字量过行框，没有只有一个汉字的行。按钮高度 48px。第一屏能看到三端、两个按钮、三个账号、密码，以及每日 04:00 重置和删除已禁用。
+两个视口 `scrollWidth === clientWidth`。标题和说明按句断行，密码 `Yuzhua@2026` 与「密码都是」在同一行。第一张纸的底边落在视口内。
+
+## 评审与剩余差距
+
+独立评审先看过未收口的一版，给了 7 分，主要问题是纸的底边被视口切掉，以及说明句把「注册。」单独留下。这两处已经改：第一张纸在 1440 和 390 里都能看到底边，说明改成两句完整的行。
+
+还没补上的：桌面端「进入宠主端」仍和章排在同一行，这是刻意把次动作降成文字，没有再做成第二颗实心按钮。滚动叙事没有用 GSAP。没有再派第二轮打分。
