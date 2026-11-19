@@ -684,12 +684,18 @@
           window.setTimeout(function () { btn.textContent = label; }, 2000);
         }
         function fallback() {
-          var range = document.createRange();
-          range.selectNodeContents(pw);
-          var sel = window.getSelection();
-          sel.removeAllRanges();
-          sel.addRange(range);
+          try {
+            var range = document.createRange();
+            range.selectNodeContents(pw);
+            var sel = window.getSelection();
+            if (sel) {
+              sel.removeAllRanges();
+              sel.addRange(range);
+            }
+          } catch (err) {}
+          btn.textContent = '请手动复制';
           if (live) live.textContent = '已选中密码，可以手动复制';
+          window.setTimeout(function () { btn.textContent = label; }, 2000);
         }
         if (navigator.clipboard && navigator.clipboard.writeText) {
           navigator.clipboard.writeText(text).then(ok, fallback);
