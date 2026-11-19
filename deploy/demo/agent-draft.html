@@ -88,7 +88,7 @@
     .lockup-tag { font-size: 15px; color: var(--body); }
 
     .eyebrow {
-      margin: 28px 0 12px;
+      margin: 8px 0 4px;
       font-size: 15px;
       line-height: 1.7;
       color: var(--body);
@@ -98,7 +98,7 @@
     h1 .ln { display: block; }
 
     .lead {
-      margin-top: 16px;
+      margin-top: 8px;
       color: var(--body);
       font-size: 16px;
       line-height: 1.7;
@@ -109,14 +109,14 @@
       display: flex;
       flex-direction: column;
       align-items: flex-start;
-      gap: 10px;
-      margin-top: 22px;
+      gap: 6px;
+      margin-top: 40px;
     }
     .side {
       display: flex;
-      flex-wrap: wrap;
-      align-items: baseline;
-      gap: 4px 12px;
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 0;
     }
 
     .stamp {
@@ -138,7 +138,7 @@
       align-items: center;
       min-height: 44px;
       font-size: 16px;
-      font-weight: 600;
+      font-weight: 400;
       text-decoration: underline;
       text-underline-offset: 4px;
     }
@@ -154,54 +154,55 @@
 
     .doors {
       list-style: none;
-      margin: 28px 0 0;
+      margin: 40px 0 0;
       padding: 0;
     }
     .doors a {
       display: flex;
-      align-items: baseline;
+      align-items: center;
       justify-content: space-between;
       gap: 16px;
-      min-height: 48px;
-      padding: 10px 0;
+      min-height: 44px;
+      padding: 0;
       border-top: 1px solid var(--rule);
       font-size: 16px;
       line-height: 1.5;
+      font-weight: 400;
     }
-    .doors .who { font-weight: 600; }
+    .doors .who { font-weight: 400; }
     .doors .id { color: var(--body); }
 
     .fine {
       display: flex;
       flex-wrap: wrap;
       align-items: center;
-      gap: 8px 16px;
-      margin-top: 8px;
-      padding-top: 16px;
-      border-top: 1px solid var(--ink);
+      gap: 4px 12px;
+      margin-top: 0;
+      padding-top: 8px;
+      border-top: 1px solid var(--rule);
       font-size: 16px;
       line-height: 1.7;
       color: var(--body);
     }
-    .fine + .fine { border-top: 0; padding-top: 0; margin-top: 4px; padding-bottom: 28px; }
+    .fine + .fine { border-top: 0; padding-top: 0; margin-top: 0; padding-bottom: 28px; }
     .nowrap { white-space: nowrap; }
     .pw { color: var(--ink); font-weight: 700; }
 
     .copy {
       min-height: 44px;
-      padding: 0 14px;
-      background: #fff;
-      color: var(--ink);
-      border: 1px solid var(--ink);
-      font: 600 16px/1.2 var(--font);
+      padding: 0 12px;
+      background: transparent;
+      color: var(--body);
+      border: 1px solid #6a6a6a;
+      font: 400 16px/1.2 var(--font);
       cursor: pointer;
     }
     .copy:active { transform: scale(.985); }
 
-    .fold { padding: 8px 32px 40px; }
-    .fold h2 { font-size: 24px; margin: 36px 0 8px; }
+    .fold { padding: 20px 32px 36px; }
+    .fold h2 { font-size: 24px; margin: 0 0 4px; }
     .fold h2 .ln { display: block; }
-    .fold h3 { font-size: 18px; margin: 32px 0 6px; }
+    .fold h3 { font-size: 18px; margin: 28px 0 2px; }
     .intro {
       max-width: 36em;
       color: var(--body);
@@ -210,7 +211,7 @@
     }
 
     .shot {
-      margin: 16px 0 0;
+      margin: 8px 0 0;
       overflow-x: auto;
       max-width: 100%;
       line-height: 0;
@@ -220,7 +221,7 @@
     .phone-shot { width: min(280px, 100%); }
     .phone-shot img { width: 100%; }
     figcaption {
-      margin-top: 8px;
+      margin-top: 4px;
       font-size: 15px;
       line-height: 1.7;
       color: var(--body);
@@ -231,9 +232,9 @@
       display: inline-flex;
       align-items: center;
       min-height: 44px;
-      margin-top: 8px;
+      margin-top: 0;
       font-size: 16px;
-      font-weight: 600;
+      font-weight: 400;
       text-decoration: underline;
       text-underline-offset: 4px;
     }
@@ -273,14 +274,7 @@
       .slip, .fold { padding-left: 48px; padding-right: 48px; }
       .slip { padding-top: 32px; }
       h1 { font-size: 40px; }
-      .eyebrow { margin-top: 18px; }
       .dog { left: 40px; width: 320px; }
-      .stamp-row {
-        flex-direction: row;
-        flex-wrap: wrap;
-        align-items: flex-start;
-        gap: 12px 28px;
-      }
       .stamp { width: auto; }
       .pair { grid-template-columns: 1fr 1fr; align-items: start; }
     }
@@ -288,10 +282,8 @@
     @media (max-width: 799px) {
       .paper { margin-top: 72px; }
       .slip { padding: 22px 20px 4px; }
-      .eyebrow { margin-top: 14px; }
-      .stamp-row { margin-top: 18px; gap: 4px; }
-      .doors { margin-top: 14px; }
-      .doors a { min-height: 44px; padding: 6px 0; }
+      .stamp-row { margin-top: 32px; }
+      .doors { margin-top: 32px; }
       .note-break { display: block; }
       .fine + .fine { padding-bottom: 8px; }
       .stamp, .fold .stamp { width: 100%; }
