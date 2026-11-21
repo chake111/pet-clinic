@@ -1,0 +1,135 @@
+name: Deploy
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+    inputs:
+      image_tag:
+        description: Existing image tag (full commit SHA) to redeploy. Leave empty to build and deploy the current commit.
+        required: false
+        type: string
+
+permissions:
+  contents: read
+  packages: write
+
+concurrency:
+  group: production-deploy
+  cancel-in-progress: false
+
+env:
+  REGISTRY: ghcr.io
+  BACKEND_IMAGE: ghcr.io/chake111/yuzhua-backend
+  WEB_IMAGE: ghcr.io/chake111/yuzhua-web
+
+jobs:
+  build:
+    name: build-and-push
+    if: github.event_name == 'push' || inputs.image_tag == ''
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    outputs:
+      image_tag: ${{ steps.meta.outputs.image_tag }}
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - name: Check out
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Set image tag
+        id: meta
+        run: echo "image_tag=${GITHUB_SHA}" >> "$GITHUB_OUTPUT"
+      - name: Log in to GitHub Container Registry
+        uses: docker/login-action@c94ce9fb468520275223c153574b00df6fe4bcc9 # v3.7.0
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@8d2750c68a42422c14e847fe6c8ac0403b4cbd6f # v3.12.0
+      - name: Build and push backend
+        uses: docker/build-push-action@10e90e3645eae34f1e60eeb005ba3a3d33f178e8 # v6.19.2
+        with:
+          context: ./backend
+          file: ./backend/Dockerfile
+          push: true
+          tags: ${{ env.BACKEND_IMAGE }}:${{ steps.meta.outputs.image_tag }}
+          cache-from: type=gha,scope=yuzhua-backend
+          cache-to: type=gha,mode=max,scope=yuzhua-backend
+      - name: Build and push web
+        uses: docker/build-push-action@10e90e3645eae34f1e60eeb005ba3a3d33f178e8 # v6.19.2
+        with:
+          context: .
+          file: ./deploy/web/Dockerfile
+          push: true
+          tags: ${{ env.WEB_IMAGE }}:${{ steps.meta.outputs.image_tag }}
+          cache-from: type=gha,scope=yuzhua-web
+          cache-to: type=gha,mode=max,scope=yuzhua-web
+
+  deploy:
+    name: deploy
+    needs: build
+    if: >-
+      always() &&
+      (
+        needs.build.result == 'success' ||
+        (
+          needs.build.result == 'skipped' &&
+          github.event_name == 'workflow_dispatch' &&
+          inputs.image_tag != ''
+        )
+      )
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    environment:
+      name: production
+      url: https://yuzhua-petclinic.top/demo
+    steps:
+      - name: Resolve image tag
+        id: meta
+        run: |
+          if [ -n "${{ inputs.image_tag }}" ]; then
+            echo "image_tag=${{ inputs.image_tag }}" >> "$GITHUB_OUTPUT"
+          else
+            echo "image_tag=${{ needs.build.outputs.image_tag }}" >> "$GITHUB_OUTPUT"
+          fi
+      - name: Deploy over SSH
+        env:
+          SSH_HOST: ${{ secrets.SSH_HOST }}
+          SSH_USER: ${{ secrets.SSH_USER }}
+          SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
+          SSH_KNOWN_HOSTS: ${{ secrets.SSH_KNOWN_HOSTS }}
+          DEPLOY_PATH: ${{ secrets.DEPLOY_PATH }}
+          GHCR_PULL_TOKEN: ${{ secrets.GHCR_PULL_TOKEN }}
+          IMAGE_TAG: ${{ steps.meta.outputs.image_tag }}
+          BACKEND_IMAGE: ${{ env.BACKEND_IMAGE }}
+          WEB_IMAGE: ${{ env.WEB_IMAGE }}
+        run: |
+          set -euo pipefail
+          mkdir -p "$HOME/.ssh"
+          chmod 700 "$HOME/.ssh"
+          umask 077
+          printf '%s\n' "$SSH_PRIVATE_KEY" > "$HOME/.ssh/deploy_key"
+          printf '%s\n' "$SSH_KNOWN_HOSTS" > "$HOME/.ssh/known_hosts"
+          chmod 600 "$HOME/.ssh/deploy_key" "$HOME/.ssh/known_hosts"
+          SSH=(ssh -i "$HOME/.ssh/deploy_key" -o UserKnownHostsFile="$HOME/.ssh/known_hosts" -o IdentitiesOnly=yes -o BatchMode=yes "${SSH_USER}@${SSH_HOST}")
+          printf '%s\n' "$GHCR_PULL_TOKEN" | "${SSH[@]}" "docker login ghcr.io -u chake111 --password-stdin"
+          "${SSH[@]}" "set -euo pipefail; cd \"$DEPLOY_PATH\"; docker pull \"${BACKEND_IMAGE}:${IMAGE_TAG}\"; docker pull \"${WEB_IMAGE}:${IMAGE_TAG}\"; docker tag \"${BACKEND_IMAGE}:${IMAGE_TAG}\" yuzhua-backend:local; docker tag \"${WEB_IMAGE}:${IMAGE_TAG}\" yuzhua-web:local; docker compose up -d --no-build --wait --wait-timeout 360; docker logout ghcr.io"
+      - name: Smoke-test the live site
+        run: |
+          set -euo pipefail
+          ok=0
+          for i in $(seq 1 12); do
+            if curl -fsS https://yuzhua-petclinic.top/api/actuator/health \
+              && curl -fsS https://yuzhua-petclinic.top/api/actuator/health/readiness \
+              && curl -fsS -o /dev/null https://yuzhua-petclinic.top/healthz \
+              && curl -fsS -o /dev/null https://yuzhua-petclinic.top/demo; then
+              ok=1
+              break
+            fi
+            sleep 10
+          done
+          test "$ok" -eq 1
