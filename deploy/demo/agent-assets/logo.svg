@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" role="img" aria-labelledby="yuzhua-logo-title">
+  <title id="yuzhua-logo-title">愈爪标志</title>
+  <circle cx="64" cy="64" r="56" fill="#FF385C"/>
+  <g fill="#FFFFFF">
+    <ellipse cx="34" cy="43" rx="8" ry="11" transform="rotate(-20 34 43)"/>
+    <ellipse cx="51" cy="31" rx="8" ry="11.5" transform="rotate(-6 51 31)"/>
+    <ellipse cx="77" cy="31" rx="8" ry="11.5" transform="rotate(6 77 31)"/>
+    <ellipse cx="94" cy="43" rx="8" ry="11" transform="rotate(20 94 43)"/>
+    <path fill-rule="evenodd" d="M40 74C40 63 49 56 64 56C79 56 88 63 88 74C88 84 79 92 64 92C49 92 40 84 40 74ZM52 69.5H59.5V62.5H68.5V69.5H76V78.5H68.5V85.5H59.5V78.5H52Z"/>
+  </g>
+</svg>
