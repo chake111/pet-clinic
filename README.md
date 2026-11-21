@@ -174,7 +174,7 @@ docker compose up -d --build --wait --wait-timeout 300
 docker compose ps             # 三个服务 healthy 后打开 http://127.0.0.1:8088
 ```
 
-Compose 起三个服务：MySQL 8.4 LTS、Spring Boot 后端、nginx + Vue 构建产物。数据库不发布到宿主机；首次启动自动执行 `sql/01_schema.sql` 和 `sql/02_data.sql`，导入 13 张表、13 位医生和 26 张演示图。
+Compose 起三个服务：MySQL 8.4 LTS、Spring Boot 后端、nginx + Vue 构建产物。数据库不发布到宿主机；首次启动自动执行 `sql/01_schema.sql` 和 `sql/02_data.sql`，导入 13 张表、13 位医生（含 1 位停诊示例）和 26 张演示图。
 
 - 用户端：http://127.0.0.1:8088/
 - 后台：http://127.0.0.1:8088/admin/login
