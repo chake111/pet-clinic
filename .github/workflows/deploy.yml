@@ -24,8 +24,49 @@ env:
   WEB_IMAGE: ghcr.io/chake111/yuzhua-web
 
 jobs:
+  preflight:
+    name: preflight
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    environment: production
+    steps:
+      - name: Check secrets and target directory
+        env:
+          SSH_HOST: ${{ secrets.SSH_HOST }}
+          SSH_USER: ${{ secrets.SSH_USER }}
+          SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
+          SSH_KNOWN_HOSTS: ${{ secrets.SSH_KNOWN_HOSTS }}
+          DEPLOY_PATH: ${{ secrets.DEPLOY_PATH }}
+          GHCR_PULL_TOKEN: ${{ secrets.GHCR_PULL_TOKEN }}
+        run: |
+          set -euo pipefail
+          missing=()
+          for name in SSH_HOST SSH_USER SSH_PRIVATE_KEY SSH_KNOWN_HOSTS DEPLOY_PATH GHCR_PULL_TOKEN; do
+            if [ -z "${!name:-}" ]; then
+              missing+=("$name")
+            fi
+          done
+          if [ "${#missing[@]}" -gt 0 ]; then
+            echo "::error::Missing required production secrets: ${missing[*]}"
+            exit 1
+          fi
+          mkdir -p "$HOME/.ssh"
+          chmod 700 "$HOME/.ssh"
+          umask 077
+          printf '%s\n' "$SSH_PRIVATE_KEY" > "$HOME/.ssh/deploy_key"
+          printf '%s\n' "$SSH_KNOWN_HOSTS" > "$HOME/.ssh/known_hosts"
+          chmod 600 "$HOME/.ssh/deploy_key" "$HOME/.ssh/known_hosts"
+          ssh -i "$HOME/.ssh/deploy_key" \
+            -o UserKnownHostsFile="$HOME/.ssh/known_hosts" \
+            -o IdentitiesOnly=yes \
+            -o BatchMode=yes \
+            -o ConnectTimeout=10 \
+            "${SSH_USER}@${SSH_HOST}" \
+            "test -d \"$DEPLOY_PATH\" || { echo 'DEPLOY_PATH is not a directory' >&2; exit 1; }; test -f \"$DEPLOY_PATH/compose.yaml\" || { echo 'compose.yaml not found in DEPLOY_PATH' >&2; exit 1; }"
+
   build:
     name: build-and-push
+    needs: preflight
     if: github.event_name == 'push' || inputs.image_tag == ''
     runs-on: ubuntu-latest
     timeout-minutes: 40
@@ -71,9 +112,10 @@ jobs:
 
   deploy:
     name: deploy
-    needs: build
+    needs: [preflight, build]
     if: >-
       always() &&
+      needs.preflight.result == 'success' &&
       (
         needs.build.result == 'success' ||
         (
