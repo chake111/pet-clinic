@@ -132,6 +132,9 @@
       text-align: center;
     }
     .stamp:active { background: var(--action-active); border-color: var(--action-active); transform: scale(.985); }
+    .stamp.is-pending { cursor: default; }
+    .stamp.is-pending:hover,
+    .stamp.is-pending:active { background: var(--action); border-color: var(--action); transform: none; }
 
     .side-link {
       display: inline-flex;
@@ -248,6 +251,7 @@
     .pair img { width: min(100%, 320px); display: block; }
 
     .fold .stamp { margin-top: 28px; }
+    .fold .stamp + .note { margin-top: 8px; }
 
     .foot {
       width: min(840px, calc(100% - 32px));
@@ -368,7 +372,8 @@
       </h1>
       <p class="lead"><span class="ln">愈爪是单家宠物医院的预约和问诊。</span><span class="ln">三端同一套数据，不用注册。</span></p>
       <div class="stamp-row">
-        <a class="stamp" href="https://www.bilibili.com/video/BV1placeholder" target="_blank" rel="noopener noreferrer">看演示<span class="sr-only">，在 B 站打开</span></a>
+        <span class="stamp is-pending">看演示<span class="sr-only">，演示视频即将上线</span></span>
+        <p class="note">演示视频即将上线，可先进入宠主端体验。</p>
         <div class="side">
           <a class="side-link" href="/login?demo=user" aria-describedby="slow-note">进入宠主端</a>
           <p class="note" id="slow-note">完整系统首次加载较慢，<span class="note-break">建议 Wi-Fi / 桌面打开</span></p>
@@ -442,7 +447,7 @@
 
       <section class="rise">
         <h2><span class="ln">用一段演示看完</span><span class="ln">预约和问诊</span></h2>
-        <p class="intro">完整路径在 B 站。下面两张是宠主端里会走到的确认挂号和在线问诊。</p>
+        <p class="intro">下面两张是宠主端里会走到的确认挂号和在线问诊。</p>
         <div class="pair">
           <figure>
             <img src="agent-assets/client-booking.webp" width="430" height="499" alt="宠主端确认挂号：医生陈明远，今天 11 月 18 日有 32 个号，底栏是布丁的下午时段和 80 元到院问诊费" loading="lazy" decoding="async">
@@ -453,7 +458,8 @@
             <figcaption>在线问诊。进行中的那条是布丁，会话里有到院建议；奶糖的会话已经结束。</figcaption>
           </figure>
         </div>
-        <a class="stamp" href="https://www.bilibili.com/video/BV1placeholder" target="_blank" rel="noopener noreferrer">看演示<span class="sr-only">，在 B 站打开</span></a>
+        <span class="stamp is-pending">看演示<span class="sr-only">，演示视频即将上线</span></span>
+        <p class="note">演示视频即将上线。</p>
       </section>
     </div>
   </article>

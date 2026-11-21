@@ -39,7 +39,7 @@
 
 ## 仍是占位
 
-1. 两处「看演示」的地址仍是 `https://www.bilibili.com/video/BV1placeholder`。成片上传后替换。页面上不写「占位」。
+1. 两处「看演示」暂为不可点的状态章（`.stamp.is-pending`），章下标注「演示视频即将上线」。成片上传后改回链接 `https://www.bilibili.com/video/<BV 号>`，并删掉提示。页面上不写「占位」字样。
 2. 一键登录接收页还没做。三个入口仍是：
    - `/login?demo=user`
    - `/admin/login?demo=doctor&redirect=/admin/my-schedule`
