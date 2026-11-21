@@ -1,0 +1,461 @@
+{
+  "schemaVersion": 1,
+  "id": "demo-video-v1",
+  "titleTemplate": "{{brand.name}} · 三端协同全流程演示",
+  "brandSource": "frontend/src/brand.js",
+  "videoSpec": {
+    "width": 1920,
+    "height": 1080,
+    "fps": 30,
+    "aspectRatio": "16:9",
+    "silent": true,
+    "firstFrameIsProductUI": true,
+    "language": "zh-CN",
+    "maxDurationSec": 60,
+    "targetDurationSec": 58,
+    "maxSubtitleChars": 14,
+    "minReadableFontPx": 32,
+    "minOutroHoldSec": 2.5
+  },
+  "safeZones": {
+    "titleSafe": {
+      "ratio": 0.8,
+      "xMin": 192,
+      "xMax": 1728,
+      "yMin": 108,
+      "yMax": 972,
+      "note": "字幕与功能标签须放在录屏外留白且完全落在此区域内，避开 B 站底栏进度条与顶部弹幕区，640×360 下可读"
+    },
+    "actionSafe": {
+      "ratio": 0.9,
+      "xMin": 96,
+      "xMax": 1824,
+      "yMin": 54,
+      "yMax": 1026,
+      "note": "左侧常驻进度轨须落在此区域内，不贴边"
+    }
+  },
+  "visualTheme": {
+    "sourceRef": "deploy/demo/agent-draft.html",
+    "ink": "#222222",
+    "body": "#3f3f3f",
+    "paper": "#ffffff",
+    "desk": "#f7f7f7",
+    "rule": "#ebebeb",
+    "action": "#d92549",
+    "actionHover": "#c71e40",
+    "actionActive": "#b51b39",
+    "fontStack": [
+      "Noto Sans SC",
+      "Inter",
+      "-apple-system",
+      "BlinkMacSystemFont",
+      "Segoe UI",
+      "PingFang SC",
+      "Hiragino Sans GB",
+      "Microsoft YaHei",
+      "sans-serif"
+    ],
+    "localFontFallback": "C:\\Windows\\Fonts\\NotoSansSC-VF.ttf",
+    "fontEnvVar": "YUZHUA_FONT_PATH",
+    "assets": {
+      "logo": "deploy/demo/agent-assets/logo.svg",
+      "mascot": "deploy/demo/agent-assets/tuantuan.webp"
+    }
+  },
+  "progressRail": [
+    { "id": "owner", "label": "宠主" },
+    { "id": "doctor", "label": "医生" },
+    { "id": "admin", "label": "管理" }
+  ],
+  "environment": {
+    "baseUrl": "http://127.0.0.1:8088",
+    "timezone": "Asia/Shanghai",
+    "locale": "zh-CN",
+    "latestTodayBookingTime": "21:30",
+    "outputDirTemplate": "output/demo-video/<YYYY-MM-DD>",
+    "prepareSql": "tools/demo-video/prepare.sql",
+    "mockPaymentPolicy": "show_as_is_no_mask"
+  },
+  "actors": {
+    "owner": {
+      "authSide": "client",
+      "username": "zhangsan",
+      "displayName": "张三",
+      "userId": 1,
+      "petId": 11,
+      "petName": "团团",
+      "passwordEnv": "YUZHUA_DEMO_PASSWORD",
+      "defaultPassword": "123456"
+    },
+    "doctor": {
+      "authSide": "admin",
+      "username": "doctor13",
+      "displayName": "苏晚晴",
+      "doctorId": 13,
+      "departmentName": "宠物皮肤科",
+      "consultationFee": 60,
+      "passwordEnv": "YUZHUA_DEMO_PASSWORD",
+      "defaultPassword": "123456"
+    },
+    "admin": {
+      "authSide": "admin",
+      "username": "admin",
+      "displayName": "苏幼薇",
+      "passwordEnv": "YUZHUA_DEMO_PASSWORD",
+      "defaultPassword": "123456"
+    }
+  },
+  "viewports": {
+    "phone": {
+      "width": 390,
+      "height": 844,
+      "dpr": 2,
+      "recordSize": { "width": 780, "height": 1688 },
+      "launchArgs": ["--force-device-scale-factor=2"]
+    },
+    "desktop": {
+      "width": 1280,
+      "height": 800,
+      "dpr": 2,
+      "recordSize": { "width": 2560, "height": 1600 },
+      "launchArgs": ["--force-device-scale-factor=2"]
+    },
+    "fullscreen": {
+      "width": 1280,
+      "height": 720,
+      "dpr": 2,
+      "recordSize": { "width": 2560, "height": 1440 },
+      "launchArgs": ["--force-device-scale-factor=2"]
+    },
+    "landing": {
+      "width": 1280,
+      "height": 720,
+      "dpr": 2,
+      "recordSize": { "width": 2560, "height": 1440 },
+      "launchArgs": ["--force-device-scale-factor=2"]
+    }
+  },
+  "forbiddenVisibleText": [
+    "doctor13",
+    "zhangsan",
+    "admin",
+    "doctor01",
+    "Yuzhua@2026",
+    "演示视频即将上线"
+  ],
+  "forbiddenRoutes": [
+    "/login",
+    "/admin/login",
+    "/me",
+    "/me/profile",
+    "/admin/profile",
+    "/admin/users"
+  ],
+  "timelineProtocol": {
+    "schemaVersion": 1,
+    "tSecOrigin": "raw_webm_frame_0",
+    "tSecFormula": "(epochMs - recordedStartEpochMs) / 1000",
+    "gapsAuthoritative": true,
+    "syncOffsetField": "leftMinusRightSec",
+    "syncFormula": "rightSec = leftSec - leftMinusRightSec",
+    "targetCoordSemantics": "x,y,width,height = CSS px bounding box; cx,cy = CSS px click center; nx = cx / viewport.width, ny = cy / viewport.height"
+  },
+  "shots": [
+    {
+      "shotId": "S01",
+      "order": 1,
+      "title": "宠主首页搜索症状关键词",
+      "startSec": 0.0,
+      "endSec": 5.0,
+      "durationSec": 5.0,
+      "stage": "owner",
+      "activeStages": ["owner"],
+      "layout": "phone",
+      "roles": ["owner"],
+      "viewportRefs": { "owner": "phone" },
+      "featureTag": "",
+      "subtitle": "团团左耳痒了三天",
+      "routes": { "owner": "/" },
+      "actions": [
+        { "id": "s01-open", "actor": "owner", "type": "navigate", "target": "/", "note": "首帧即宠主首页，零黑屏开场" },
+        { "id": "s01-focus-search", "actor": "owner", "type": "click", "selector": "input[aria-label='搜索医生']", "note": "聚焦顶部搜索框" },
+        { "id": "s01-type-ear", "actor": "owner", "type": "input", "selector": "input[aria-label='搜索医生']", "value": "耳", "note": "输入症状关键词「耳」" },
+        { "id": "s01-submit", "actor": "owner", "type": "click", "selector": ".hero .el-input-group__append button", "note": "点击搜索按钮跳转到医生列表" }
+      ],
+      "assertText": {
+        "owner": ["为爱宠，找到合适的医生", "就诊科室"]
+      },
+      "zoomTargets": [
+        { "role": "owner", "actionId": "s01-focus-search", "scale": 1.35, "label": "聚焦首页搜索栏" },
+        { "role": "owner", "actionId": "s01-submit", "scale": 1.4, "ripple": true, "label": "点击搜索" }
+      ]
+    },
+    {
+      "shotId": "S02",
+      "order": 2,
+      "title": "医生列表选苏晚晴并进详情发起问诊",
+      "startSec": 5.0,
+      "endSec": 11.0,
+      "durationSec": 6.0,
+      "stage": "owner",
+      "activeStages": ["owner"],
+      "layout": "phone",
+      "roles": ["owner"],
+      "viewportRefs": { "owner": "phone" },
+      "featureTag": "找医生",
+      "subtitle": "搜「耳」，找到耳科医生",
+      "routes": { "owner": "/doctors?keyword=%E8%80%B3 -> /doctor/13 -> /consult/new/13" },
+      "actions": [
+        { "id": "s02-pick-doctor", "actor": "owner", "type": "click", "selector": "article.doctor:has-text('苏晚晴')", "note": "列表返回孙浩然(第1)与苏晚晴(第2)，点击苏晚晴卡片" },
+        { "id": "s02-open-consult", "actor": "owner", "type": "click", "selector": ".cta-bar button:has-text('图文问诊 免费')", "note": "医生详情页核验专长后点免费图文问诊" },
+        { "id": "s02-pick-pet", "actor": "owner", "type": "click", "selector": "label.pet:has-text('团团')", "note": "发起问诊页选择宠物团团" },
+        { "id": "s02-fill-symptom", "actor": "owner", "type": "input", "selector": "textarea[aria-label='症状描述']", "value": "团团这两天总挠左耳、频繁甩头，耳道有点发红，需要先到院吗？", "note": "填写症状描述" },
+        { "id": "s02-submit-consult", "actor": "owner", "type": "click", "selector": ".cta-bar button:has-text('发起问诊')", "note": "提交新建问诊会话并进入聊天室 /consult/:id" }
+      ],
+      "assertText": {
+        "ownerList": ["找医生", "苏晚晴", "犬猫外耳炎"],
+        "ownerDetail": ["苏晚晴", "外耳炎", "宠物皮肤科", "图文问诊 免费"],
+        "ownerNewConsult": ["发起图文问诊", "团团"]
+      },
+      "zoomTargets": [
+        { "role": "owner", "actionId": "s02-pick-doctor", "scale": 1.35, "ripple": true, "label": "点击苏晚晴医生卡片" },
+        { "role": "owner", "actionId": "s02-open-consult", "scale": 1.4, "ripple": true, "label": "点击免费图文问诊" }
+      ]
+    },
+    {
+      "shotId": "S03",
+      "order": 3,
+      "title": "双端实时图文问诊与已读回执",
+      "startSec": 11.0,
+      "endSec": 21.0,
+      "durationSec": 10.0,
+      "stage": "doctor",
+      "activeStages": ["owner", "doctor"],
+      "layout": "split",
+      "roles": ["owner", "doctor"],
+      "viewportRefs": { "owner": "phone", "doctor": "desktop" },
+      "featureTag": "图文问诊",
+      "subtitle": "等不及？先在线问问",
+      "subtitles": [
+        { "atRatio": 0, "text": "等不及？先在线问问" },
+        { "atRatio": 0.45, "text": "医生这边实时收到" }
+      ],
+      "routes": {
+        "owner": "/consult/:sessionId",
+        "doctor": "/admin/consult -> /admin/consult/:sessionId"
+      },
+      "actions": [
+        { "id": "s03-doc-open", "actor": "doctor", "type": "navigate", "target": "/admin/consult/:sessionId", "note": "医生端打开对应问诊会话" },
+        { "id": "s03-doc-accept", "actor": "doctor", "type": "click", "selector": "header.head button:has-text('接诊')", "note": "医生点接诊，状态由待接诊变为进行中" },
+        { "id": "s03-owner-type", "actor": "owner", "type": "input", "selector": "textarea[aria-label='问诊消息']", "value": "刚才看了下耳道有点发红，偶尔还会甩头", "note": "宠主输入实时消息" },
+        { "id": "s03-owner-send", "actor": "owner", "type": "click", "selector": "button[aria-label='发送消息']", "note": "宠主发送；医生端 WS 实时收到并自动回发 READ 帧，宠主侧由已送达变已读" },
+        { "id": "s03-doc-type", "actor": "doctor", "type": "input", "selector": "textarea[aria-label='问诊回复']", "value": "多见于外耳炎，建议今天到院做耳道镜检，我发挂号卡片给你。", "note": "医生回复" },
+        { "id": "s03-doc-send", "actor": "doctor", "type": "click", "selector": "button[aria-label='发送消息']", "note": "医生发送回复，宠主端实时展示" }
+      ],
+      "assertText": {
+        "owner": ["苏晚晴", "团团的问诊", "医生已接诊，会话开始。", "已读", "多见于外耳炎"],
+        "doctor": ["团团", "主人 · 张三", "进行中", "刚才看了下耳道有点发红"]
+      },
+      "zoomTargets": [
+        { "role": "doctor", "actionId": "s03-doc-accept", "scale": 1.3, "ripple": true, "label": "医生接诊" },
+        { "role": "owner", "actionId": "s03-owner-send", "scale": 1.38, "ripple": true, "label": "宠主发送与已读回执" }
+      ]
+    },
+    {
+      "shotId": "S04",
+      "order": 4,
+      "title": "医生发建议到院卡，宠主一键去挂号",
+      "startSec": 21.0,
+      "endSec": 27.5,
+      "durationSec": 6.5,
+      "stage": "doctor",
+      "activeStages": ["owner", "doctor"],
+      "layout": "split",
+      "roles": ["owner", "doctor"],
+      "viewportRefs": { "owner": "phone", "doctor": "desktop" },
+      "featureTag": "",
+      "subtitle": "医生建议到院看看",
+      "routes": {
+        "owner": "/consult/:sessionId -> /book/13",
+        "doctor": "/admin/consult/:sessionId"
+      },
+      "actions": [
+        { "id": "s04-doc-suggest-open", "actor": "doctor", "type": "click", "selector": ".reply-tools button:has-text('建议到院')", "note": "医生打开建议到院预约弹窗" },
+        { "id": "s04-doc-suggest-note", "actor": "doctor", "type": "input", "selector": ".el-dialog textarea", "value": "建议今天到院做耳道镜检与分泌物检查，先别自行滴药。", "note": "填写到院建议附言" },
+        { "id": "s04-doc-suggest-send", "actor": "doctor", "type": "click", "selector": ".el-dialog button:has-text('发送建议')", "note": "发送 SUGGEST 卡片" },
+        { "id": "s04-owner-go-book", "actor": "owner", "type": "click", "selector": ".bubble button:has-text('去预约挂号')", "note": "宠主点击到院建议卡片内的「去预约挂号」，直达 /book/13" }
+      ],
+      "assertText": {
+        "doctor": ["建议到院预约", "已建议患者到院就诊"],
+        "owner": ["医生建议到院就诊", "去预约挂号"]
+      },
+      "zoomTargets": [
+        { "role": "doctor", "actionId": "s04-doc-suggest-send", "scale": 1.3, "ripple": true, "label": "医生发送建议到院卡" },
+        { "role": "owner", "actionId": "s04-owner-go-book", "scale": 1.42, "ripple": true, "label": "宠主点击去预约挂号" }
+      ]
+    },
+    {
+      "shotId": "S05",
+      "order": 5,
+      "title": "挂号页选今天时段与团团并完成支付",
+      "startSec": 27.5,
+      "endSec": 36.0,
+      "durationSec": 8.5,
+      "stage": "owner",
+      "activeStages": ["owner"],
+      "layout": "phone",
+      "roles": ["owner"],
+      "viewportRefs": { "owner": "phone" },
+      "featureTag": "在线挂号",
+      "subtitle": "选个今天的号，一步付完",
+      "routes": { "owner": "/book/13 -> /order/:orderId" },
+      "actions": [
+        { "id": "s05-pick-today", "actor": "owner", "type": "click", "selector": ".date-strip .date-option:has-text('今天')", "note": "确认日期条选中今天（Asia/Shanghai；若超过 21:30 录制脚本须显式报错）" },
+        { "id": "s05-pick-slot", "actor": "owner", "type": "click", "selector": ".row button.slot:not(:disabled)", "note": "动态选择今天第一个未结束且有余号的时段" },
+        { "id": "s05-pick-pet", "actor": "owner", "type": "click", "selector": "label.pet:has-text('团团')", "note": "就诊宠物选择团团" },
+        { "id": "s05-fill-symptom", "actor": "owner", "type": "input", "selector": "textarea[aria-label='症状描述']", "value": "左耳反复抓挠发红伴甩头，按线上问诊建议到院做耳道镜检。", "note": "填写预约症状描述" },
+        { "id": "s05-submit-order", "actor": "owner", "type": "click", "selector": ".cta-bar button:has-text('提交挂号')", "note": "提交挂号，弹出 PaymentTicket 票据弹窗" },
+        { "id": "s05-pay-confirm", "actor": "owner", "type": "click", "selector": ".payment-ticket button.ticket-primary", "note": "点击「确认支付 ¥ 60.00」（模拟支付流程照实拍不遮挡）" },
+        { "id": "s05-view-order", "actor": "owner", "type": "click", "selector": ".payment-ticket button:has-text('查看预约')", "note": "支付成功后点击「查看预约」进 /order/:id 展示待接诊与已支付行程轴" }
+      ],
+      "assertText": {
+        "ownerBook": ["确认挂号", "苏晚晴", "今天", "团团"],
+        "ownerPayTicket": ["确认这次就诊", "预约已生效", "支付成功，请按预约时间到院"],
+        "ownerOrder": ["待接诊", "已支付", "团团", "苏晚晴"]
+      },
+      "zoomTargets": [
+        { "role": "owner", "actionId": "s05-pick-slot", "scale": 1.35, "ripple": true, "label": "选今天可约时段" },
+        { "role": "owner", "actionId": "s05-pay-confirm", "scale": 1.32, "ripple": true, "label": "票据弹窗一步确认支付" }
+      ]
+    },
+    {
+      "shotId": "S06",
+      "order": 6,
+      "title": "医生接诊工作台：接诊、写病历与结束就诊",
+      "startSec": 36.0,
+      "endSec": 45.5,
+      "durationSec": 9.5,
+      "stage": "doctor",
+      "activeStages": ["doctor"],
+      "layout": "desktop",
+      "roles": ["doctor"],
+      "viewportRefs": { "doctor": "desktop" },
+      "featureTag": "电子病历",
+      "subtitle": "到院就诊，病历归档",
+      "routes": { "doctor": "/admin/appointments -> /admin/workbench/:orderId" },
+      "actions": [
+        { "id": "s06-open-list", "actor": "doctor", "type": "navigate", "target": "/admin/appointments", "note": "医生默认进入今天接诊清单，可见团团待接诊单" },
+        { "id": "s06-accept-row", "actor": "doctor", "type": "click", "selector": "article.appt-row:has-text('团团') button:has-text('接诊')", "note": "列表页点击接诊，状态变就诊中" },
+        { "id": "s06-enter-workbench", "actor": "doctor", "type": "click", "selector": "article.appt-row:has-text('团团') button:has-text('继续接诊')", "note": "进入 /admin/workbench/:orderId 门诊病历工作台" },
+        { "id": "s06-fill-chief", "actor": "doctor", "type": "input", "selector": ".el-form-item:has-text('主诉') textarea", "value": "左耳频繁抓挠、甩头两天，耳道轻微发红。", "note": "填写主诉" },
+        { "id": "s06-fill-exam", "actor": "doctor", "type": "input", "selector": ".el-form-item:has-text('体格检查') textarea", "value": "体温 38.5℃，左耳外耳道轻度充血伴少量褐色分泌物，耳镜见鼓膜完整。", "note": "填写体格检查" },
+        { "id": "s06-fill-diagnosis", "actor": "doctor", "type": "input", "selector": ".el-form-item:has-text('诊断结论') textarea", "value": "犬轻度细菌性外耳炎", "note": "填写必填诊断结论" },
+        { "id": "s06-fill-rx", "actor": "doctor", "type": "input", "selector": ".el-form-item:has-text('处方 / 用药建议') textarea", "value": "宠物洗耳液清洁耳道每日 1 次；复方抗菌滴耳液左耳 3 滴，每日 2 次，连用 7 天。", "note": "填写处方与用药建议" },
+        { "id": "s06-fill-treatment", "actor": "doctor", "type": "input", "selector": ".el-form-item:has-text('处置措施') textarea", "value": "院内温和洗耳并完成耳道分泌物镜检。", "note": "填写处置措施" },
+        { "id": "s06-fill-advice", "actor": "doctor", "type": "input", "selector": ".el-form-item:has-text('照护与复诊建议') textarea", "value": "佩戴伊丽莎白圈防止抓挠，保持耳道干燥，7 天后到院复查。", "note": "填写医嘱" },
+        { "id": "s06-save-record", "actor": "doctor", "type": "click", "selector": ".record-toolbar button:has-text('保存病历')", "note": "保存病历，状态提示变为「病历已保存」且按钮禁用" },
+        { "id": "s06-finish-open", "actor": "doctor", "type": "click", "selector": ".record-toolbar button:has-text('结束就诊')", "note": "点击结束就诊打开确认弹窗「结束本次就诊」" },
+        { "id": "s06-finish-confirm", "actor": "doctor", "type": "click", "selector": ".el-dialog button:has-text('确认结束')", "note": "确认结束就诊，状态变为「已完成」" }
+      ],
+      "assertText": {
+        "doctorList": ["接诊清单", "今天", "团团", "待接诊"],
+        "doctorWorkbench": ["门诊病历", "苏晚晴医生", "团团", "就诊中", "病历已保存", "已完成"]
+      },
+      "zoomTargets": [
+        { "role": "doctor", "actionId": "s06-accept-row", "scale": 1.3, "ripple": true, "label": "接诊今日预约" },
+        { "role": "doctor", "actionId": "s06-save-record", "scale": 1.28, "ripple": true, "label": "保存门诊病历" },
+        { "role": "doctor", "actionId": "s06-finish-confirm", "scale": 1.3, "ripple": true, "label": "确认结束就诊" }
+      ]
+    },
+    {
+      "shotId": "S07",
+      "order": 7,
+      "title": "管理端全院经营看板",
+      "startSec": 45.5,
+      "endSec": 51.5,
+      "durationSec": 6.0,
+      "stage": "admin",
+      "activeStages": ["admin"],
+      "layout": "fullscreen",
+      "roles": ["admin"],
+      "viewportRefs": { "admin": "fullscreen" },
+      "featureTag": "",
+      "subtitle": "管理端：今天的预约一目了然",
+      "routes": { "admin": "/admin/dashboard" },
+      "actions": [
+        { "id": "s07-open-dashboard", "actor": "admin", "type": "navigate", "target": "/admin/dashboard", "note": "管理员全屏打开工作台看板，等待 4 个 ECharts 画布渲染完毕，模拟支付口径照实拍" },
+        { "id": "s07-scroll-charts", "actor": "admin", "type": "scroll", "value": 240, "note": "轻缓下移完整展示四张业务统计图" }
+      ],
+      "assertText": {
+        "admin": [
+          "工作台",
+          "苏幼薇",
+          "今日概览",
+          "今日预约",
+          "今日营收",
+          "模拟支付口径",
+          "业务统计",
+          "预约量与营收趋势",
+          "预约状态分布",
+          "科室预约量",
+          "医生接诊量排行"
+        ]
+      },
+      "zoomTargets": [
+        { "role": "admin", "actionId": "s07-open-dashboard", "scale": 1.18, "label": "今日概览与实时新增诊费" }
+      ]
+    },
+    {
+      "shotId": "S08",
+      "order": 8,
+      "title": "片尾在线演示落地页与 CTA",
+      "startSec": 51.5,
+      "endSec": 58.0,
+      "durationSec": 6.5,
+      "stage": "outro",
+      "activeStages": ["owner", "doctor", "admin"],
+      "layout": "landing_outro",
+      "roles": ["landing"],
+      "viewportRefs": { "landing": "landing" },
+      "featureTag": "",
+      "subtitle": "",
+      "routes": { "landing": "/agent-draft.html" },
+      "landingCapture": {
+        "staticRoot": "deploy/demo",
+        "sourceFile": "deploy/demo/agent-draft.html",
+        "readOnly": true,
+        "hideSelectors": [
+          "article#top .stamp-row > p.note",
+          ".fold .stamp.is-pending + p.note",
+          ".stamp.is-pending .sr-only",
+          ".doors .id",
+          "p.fine:has(#pw)",
+          "article.paper.next"
+        ],
+        "overrideCss": ".stamp.is-pending { cursor: pointer !important; opacity: 1 !important; }",
+        "stampSelector": "article#top .stamp-row > span.stamp.is-pending",
+        "note": "不改 deploy/demo/ 源文件；由 record.mjs 起只读静态服并用 page.addStyleTag 隐藏待上线提示、次纸与账号密码"
+      },
+      "actions": [
+        { "id": "s08-open-landing", "actor": "landing", "type": "navigate", "target": "/agent-draft.html", "note": "录制只读本地演示落地页首纸（含团团、品牌与红章，零账号密码）" }
+      ],
+      "assertText": {
+        "landing": ["{{brand.name}}", "宠主挂号、问诊", "医生接诊、写病历", "管理员看全院", "看演示"]
+      },
+      "cta": {
+        "brandTemplate": "{{brand.name}} · {{brand.tagline}}",
+        "stampText": "看演示",
+        "stampFlashColor": "#d92549",
+        "url": "yuzhua-petclinic.top/demo",
+        "subline": "免注册 · 三端直接进入 · 链接在简介",
+        "noQrCode": true,
+        "noCredentials": true,
+        "noPersonalInfo": true
+      },
+      "zoomTargets": [
+        { "role": "landing", "actionId": "s08-open-landing", "scale": 1.12, "label": "红章闪一下后切大字 CTA" }
+      ]
+    }
+  ]
+}

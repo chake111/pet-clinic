@@ -1,0 +1,48 @@
+/* 演示视频视觉基础令牌（与 deploy/demo/agent-draft.html 保持一致的墨色 + 绯红体系） */
+@font-face {
+  font-family: "YuzhuaSC";
+  src: url("assets/fonts/NotoSansSC-VF.ttf") format("truetype");
+  font-weight: 100 900;
+  font-style: normal;
+  font-display: block;
+}
+
+:root {
+  --ink: #222222;
+  --body: #3f3f3f;
+  --muted: #595959;
+  --paper: #ffffff;
+  --desk: #f7f7f7;
+  --rule: #ebebeb;
+  --rule-strong: #d4d4d4;
+  --action: #d92549;
+  --action-hover: #c71e40;
+  --action-soft: #fde8ec;
+  --font-sc: "YuzhuaSC", sans-serif;
+
+  /* 1920×1080 安全区参考常量
+   * 90% 动作安全区: x ∈ [96, 1824], y ∈ [54, 1026]
+   * 80% 标题安全区: x ∈ [192, 1728], y ∈ [108, 972]
+   */
+  --safe-action-x: 96px;
+  --safe-action-y: 54px;
+  --safe-title-x: 192px;
+  --safe-title-y: 108px;
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html,
+body {
+  width: 1920px;
+  height: 1080px;
+  overflow: hidden;
+  background: var(--desk);
+  color: var(--ink);
+  font-family: var(--font-sc);
+  -webkit-font-smoothing: antialiased;
+}
