@@ -28,6 +28,7 @@ jobs:
     name: preflight
     runs-on: ubuntu-latest
     timeout-minutes: 5
+    permissions: {}
     environment: production
     steps:
       - name: Check secrets and target directory
@@ -56,13 +57,13 @@ jobs:
           printf '%s\n' "$SSH_PRIVATE_KEY" > "$HOME/.ssh/deploy_key"
           printf '%s\n' "$SSH_KNOWN_HOSTS" > "$HOME/.ssh/known_hosts"
           chmod 600 "$HOME/.ssh/deploy_key" "$HOME/.ssh/known_hosts"
-          ssh -i "$HOME/.ssh/deploy_key" \
+          printf '%s' "$DEPLOY_PATH" | ssh -i "$HOME/.ssh/deploy_key" \
             -o UserKnownHostsFile="$HOME/.ssh/known_hosts" \
             -o IdentitiesOnly=yes \
             -o BatchMode=yes \
             -o ConnectTimeout=10 \
             "${SSH_USER}@${SSH_HOST}" \
-            "test -d \"$DEPLOY_PATH\" || { echo 'DEPLOY_PATH is not a directory' >&2; exit 1; }; test -f \"$DEPLOY_PATH/compose.yaml\" || { echo 'compose.yaml not found in DEPLOY_PATH' >&2; exit 1; }"
+            'p=$(cat); test -d "$p" || { echo "DEPLOY_PATH is not a directory" >&2; exit 1; }; test -f "$p/compose.yaml" || { echo "compose.yaml not found in DEPLOY_PATH" >&2; exit 1; }'
 
   build:
     name: build-and-push
@@ -114,7 +115,7 @@ jobs:
     name: deploy
     needs: [preflight, build]
     if: >-
-      always() &&
+      !cancelled() &&
       needs.preflight.result == 'success' &&
       (
         needs.build.result == 'success' ||

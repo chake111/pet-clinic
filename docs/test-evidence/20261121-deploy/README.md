@@ -8,7 +8,7 @@
 
 | Run ID | 时间 (UTC) | 触发方式 | 报错摘要（见 `failures.txt`） | 原因 | 修复方式 |
 | --- | --- | --- | --- | --- | --- |
-| `44871613018` | `2026-11-21T05:35:45Z` | `push` | `usage: ssh ...` / `exit code 255` | 推断：疑似有 secret 为空（日志中 `SSH_HOST` / `SSH_USER` 展开为空） | 补齐 `production` environment 的必填 secrets |
+| `44871613018` | `2026-11-21T05:35:45Z` | `push` | `usage: ssh ...` / `exit code 255` | 日志直接显示 `SSH_HOST` 与 `SSH_USER` 展开为空（其余 4 项已配置为 `***`；当初漏填原因未另行记录） | 补齐 `production` environment 的必填 secrets |
 | `44873053843` | `2026-11-21T05:54:45Z` | `workflow_dispatch` | `Host key verification failed.` / `exit code 255` | `SSH_KNOWN_HOSTS` 与目标服务器公钥指纹不匹配 | 使用 `ssh-keyscan -H <host>` 重新生成并更新 `SSH_KNOWN_HOSTS` |
 | `44873481195` | `2026-11-21T06:00:32Z` | `workflow_dispatch` | `bash: line 1: cd: ***: Not a directory` / `exit code 1` | `DEPLOY_PATH` 填成了 `compose.yaml` 的文件路径 | 将 `DEPLOY_PATH` 改为 `compose.yaml` 所在的目录路径 |
 | `44875227449` | `2026-11-21T06:22:19Z` | `workflow_dispatch` | `bash: line 1: cd: ***: Not a directory` / `exit code 1` | 同上（`DEPLOY_PATH` 仍为文件路径） | 修正 `DEPLOY_PATH` 为目录路径后，于 `44876361951` 首次部署成功 |

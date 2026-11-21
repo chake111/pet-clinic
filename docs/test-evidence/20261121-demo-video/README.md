@@ -42,11 +42,11 @@ node tools/demo-video/build.mjs --stage=verify --date 2026-11-21
 
 ## 归档文件清单
 
-- `p4-check.json`：步骤 1 新生成的复核报告
+- `p4-check.json`：运行 `--stage=verify` 生成的复核报告（`2026-11-21T09:23:57Z`）
 - `cover-check.json`：封面尺寸与 4:3 安全区校验报告
 - `contact-sheet-decoded-1080p.png`：1080p 成片解码帧拼图
 - `contact-sheet-decoded-360p.png`：360p 预览解码帧拼图
 
 ## 边界说明
 
-本次 `--stage=verify` 只对现有成片做参数、解帧与安全区复核。复核通过只能证明该份 `.mp4` 本身符合规格，不能证明 `03:57` 提交（`93b2ad0`）的脚本在当前环境下仍能重新生成完全一致的成片。
+本次 `--stage=verify` 只对现有成片做参数、解帧与安全区复核。复核通过只能证明该份 `.mp4` 本身符合规格，不能证明 `03:57` 提交（`93b2ad0`）的脚本在当前环境下仍能重新生成完全一致的成片。`cover-check.json` 未在 `--stage=verify` 中重跑，沿用原生成时间 `2026-11-21T07:55:42Z`（早于 `93b2ad0` 提交约 1 小时）的校验输出。
