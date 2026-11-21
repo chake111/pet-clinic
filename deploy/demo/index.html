@@ -132,9 +132,6 @@
       text-align: center;
     }
     .stamp:active { background: var(--action-active); border-color: var(--action-active); transform: scale(.985); }
-    .stamp.is-pending { cursor: default; }
-    .stamp.is-pending:hover,
-    .stamp.is-pending:active { background: var(--action); border-color: var(--action); transform: none; }
 
     .side-link {
       display: inline-flex;
@@ -372,8 +369,7 @@
       </h1>
       <p class="lead"><span class="ln">愈爪是单家宠物医院的预约和问诊。</span><span class="ln">三端同一套数据，不用注册。</span></p>
       <div class="stamp-row">
-        <span class="stamp is-pending">看演示<span class="sr-only">，演示视频即将上线</span></span>
-        <p class="note">演示视频即将上线，可先进入宠主端体验。</p>
+        <a class="stamp" href="https://www.bilibili.com/video/BV17tyazJEVD/" target="_blank" rel="noopener noreferrer">看演示<span class="sr-only">（哔哩哔哩，新窗口打开）</span></a>
         <div class="side">
           <a class="side-link" href="/login?demo=user" aria-describedby="slow-note">进入宠主端</a>
           <p class="note" id="slow-note">完整系统首次加载较慢，<span class="note-break">建议 Wi-Fi / 桌面打开</span></p>
@@ -458,8 +454,7 @@
             <figcaption>在线问诊。进行中的那条是布丁，会话里有到院建议；奶糖的会话已经结束。</figcaption>
           </figure>
         </div>
-        <span class="stamp is-pending">看演示<span class="sr-only">，演示视频即将上线</span></span>
-        <p class="note">演示视频即将上线。</p>
+        <a class="stamp" href="https://www.bilibili.com/video/BV17tyazJEVD/" target="_blank" rel="noopener noreferrer">看演示<span class="sr-only">（哔哩哔哩，新窗口打开）</span></a>
       </section>
     </div>
   </article>
