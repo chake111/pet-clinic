@@ -39,6 +39,8 @@ jobs:
           docker compose up -d --build --wait --wait-timeout 360
           curl -fsS http://127.0.0.1:8088/api/actuator/health
           curl -fsS -o /dev/null http://127.0.0.1:8088/api/uploads/seed/doctor-01.jpg
+          curl -fsS -o /dev/null http://127.0.0.1:8088/api/uploads/seed/doctor-13.jpg
+          curl -fsS -o /dev/null http://127.0.0.1:8088/api/uploads/seed/pet-11.jpg
           curl -fsS -o /dev/null http://127.0.0.1:8088/healthz
 
       - name: 校验就绪、指标端点与 nginx 拦截
