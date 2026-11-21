@@ -123,8 +123,8 @@ jobs:
           set -euo pipefail
           ok=0
           for i in $(seq 1 12); do
-            if curl -fsS https://yuzhua-petclinic.top/api/actuator/health \
-              && curl -fsS https://yuzhua-petclinic.top/api/actuator/health/readiness \
+            if grep -q '"status":"UP"' < <(curl -fsS https://yuzhua-petclinic.top/api/actuator/health) \
+              && grep -q '"status":"UP"' < <(curl -fsS https://yuzhua-petclinic.top/api/actuator/health/readiness) \
               && curl -fsS -o /dev/null https://yuzhua-petclinic.top/healthz \
               && curl -fsS -o /dev/null https://yuzhua-petclinic.top/demo; then
               ok=1
