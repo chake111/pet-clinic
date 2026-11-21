@@ -1,6 +1,6 @@
 # 愈爪在线演示落地页 · 说明
 
-成稿仍是 `deploy/demo/agent-draft.html`。过程候选和方向卡在 `.oil-ui/demo-landing/`（仓库已忽略，不进 PR）。没有改应用代码，也没有改 `deploy/demo/index.html`。
+成稿是 `deploy/demo/index.html`。过程候选和方向卡在 `.oil-ui/demo-landing/`（仓库已忽略，不进 PR）。没有改应用代码。
 
 ## 视觉北极星
 
